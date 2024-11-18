@@ -1,0 +1,38 @@
+{
+    "120_77_PC": {
+        "dlp_address": "https://172.16.150.188:8443",
+        "_device_type" : "single, segment, cluster, cluster+segment",
+        "device_type": "cluster+segment",
+        "dlp_client_address": "172.16.150.124"
+	},
+    "150_124_PC": {
+        "dlp_address": "https://172.16.150.188:8443",
+        "_device_type" : "single, segment, cluster, cluster+segment",
+        "device_type": "cluster+segment",
+        "dlp_client_address": "172.16.150.124"
+	},
+  	"150_131_PC": {
+        "dlp_address": "https://172.16.150.185:8443",
+        "_device_type" : "single, segment, cluster, cluster+segment",
+        "device_type": "segment",
+        "dlp_client_address": "172.16.150.131"
+	},
+	"150_132_PC": {
+        "dlp_address": "https://172.16.150.186:8443",
+        "_device_type" : "single, segment, cluster, cluster+segment",
+        "device_type": "single",
+        "dlp_client_address": "172.16.150.132"
+	},
+	"150_133_PC": {
+        "dlp_address": "https://172.16.150.187:8443",
+        "_device_type" : "single, segment, cluster, cluster+segment",
+        "device_type": "cluster+segment",
+        "dlp_client_address": "172.16.150.133"
+	},
+    "150_134_PC": {
+        "dlp_address": "https://172.16.150.185:8443",
+        "_device_type" : "single, segment, cluster, cluster+segment",
+        "device_type": "cluster",
+        "dlp_client_address": "172.16.150.134"
+    }
+}

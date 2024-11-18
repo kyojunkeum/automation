@@ -1,0 +1,184 @@
+pipeline {
+    agent none
+    parameters {
+        string(defaultValue: '150_139_PC', description: 'agent_name (쉼표로 구분)', name: 'agent_name')
+        booleanParam(defaultValue: true, description: 'DLP 초기 설정 세팅 여부', name: 'dlp_init')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    def labels = params.agent_name.split(',')
+                    def parallelStages = [:]
+
+                    for (int i = 0; i < labels.size(); i++) {
+                        def label_target = labels[i]
+
+                        parallelStages[label_target] = {
+                            node(label: label_target) {
+                                stage("Checkout : $label_target") {
+                                    git(
+                                        url: 'git@gitlab.soosanint.com:qadb/dlp_automation.git',
+                                        branch: 'main',
+                                        credentialsId: 'ysgo_139'
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    parallel parallelStages
+                }
+            }
+        }
+
+        stage('Default Setting') {
+            steps {
+                script {
+                    def labels = params.agent_name.split(',')
+
+                    def parallelStages = [:]
+
+                    for (int i = 0; i < labels.size(); i++) {
+                        def label_target = labels[i]
+
+                        parallelStages[label_target] = {
+                            node(label: label_target) {
+                                stage("default setting: $label_target") {
+                                    script {
+                                        echo "Running LIB install & Test Result(DB) Init for label : $label_target"
+                                        bat """
+
+                                        pip install -r requirements.txt
+
+                                        cd "result"
+                                        python db.py ${label_target}
+                                        """
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    parallel parallelStages
+                }
+            }
+        }
+
+
+        stage('Test DLP Init') {
+            steps {
+                script {
+                    def labels = params.agent_name.split(',')
+
+                    for (int i = 0; i < labels.size(); i++) {
+                        def label_target = labels[i]
+
+                        node(label: label_target) {
+                            stage("Test DLP Init: $label_target") {
+								script {
+									echo "Running Test DLP Init for label: $label_target"
+									if (params.dlp_init) {
+										bat """
+										cd "test_suite"
+										python dlp_init.py ${label_target}
+										"""
+									} else {
+										echo 'DLP Init Pass...'
+									}
+								}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+		stage('Service Test') {
+            steps {
+                script {
+                    def labels = params.agent_name.split(',')
+
+                    def parallelStages = [:]
+
+                    for (int i = 0; i < labels.size(); i++) {
+                        def label_target = labels[i]
+
+                        parallelStages[label_target] = {
+                            node(label: label_target) {
+                                stage("Service Test: $label_target") {
+                                    script {
+                                        echo "Running Service Test for label: $label_target"
+
+										def testList = ['sns', 'mail', 'ftp', 'messenger', 'workshare', 'comment', 'webhard', 'smtp']
+
+										for (def test : testList) {
+											bat """
+											cd "test_suite\\$test"
+											python all_test.py ${label_target}
+											"""
+										}
+									}
+								}
+							}
+						}
+                    }
+                    parallel parallelStages
+                }
+            }
+        }
+
+        stage('Checkout_2') {
+            steps {
+                script {
+                    def labels = params.agent_name.split(',')
+                    def parallelStages = [:]
+
+                    for (int i = 0; i < labels.size(); i++) {
+                        def label_target = labels[i]
+
+                        parallelStages[label_target] = {
+                            node(label: label_target) {
+                                stage("Checkout_2 : $label_target") {
+                                    git(
+                                        url: 'git@gitlab.soosanint.com:qadb/dlp_automation.git',
+                                        branch: 'main',
+                                        credentialsId: 'ysgo_139'
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    parallel parallelStages
+                }
+            }
+        }
+        stage('ReTest') {
+            steps {
+                script {
+                    def labels = params.agent_name.split(',')
+
+                    def parallelStages = [:]
+
+                    for (int i = 0; i < labels.size(); i++) {
+                        def label_target = labels[i]
+
+                        parallelStages[label_target] = {
+                            node(label: label_target) {
+                                stage("ReTest: $label_target") {
+                                    script {
+                                        echo "ReTest : $label_target"
+										bat """
+										cd "test_suite"
+										python retest.py ${label_target}
+										"""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    parallel parallelStages
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,1 @@
+[{"name":"Jenkins","type":"Jenkins","url":"http://jenkins.example.com/job/test-job/123/","buildOrder":123,"buildName":"test-job #123","buildUrl":"http://jenkins.example.com/job/test-job/123/","reportUrl":"http://jenkins.example.com/job/test-job/123/allure"}]

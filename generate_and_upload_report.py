@@ -11,7 +11,7 @@ def run_tests_and_generate_report():
     try:
         # 1. 테스트 코드 실행
         print("테스트를 실행합니다...")
-        result = subprocess.run(["pytest", "-v", "--reruns", "0", "--alluredir=allure-results"], check=False, env=env)
+        result = subprocess.run(["pytest", "-v", "--alluredir=allure-results"], check=False, env=env)
 
         # 2. Allure 리포트 생성
         print("Allure 리포트를 생성합니다...")
@@ -42,8 +42,8 @@ def ensure_remote_directory_exists(sftp, remote_directory):
 
 def upload_report():
     hostname = "172.16.150.138"
-    username = "ewalker"
-    password = "qkfwjswmd138##"  # 비밀번호를 필요에 따라 입력
+    username = "root"
+    password = "qkfwjswmd138**"  # 비밀번호를 필요에 따라 입력
 
     # SSH 클라이언트 설정
     ssh = paramiko.SSHClient()

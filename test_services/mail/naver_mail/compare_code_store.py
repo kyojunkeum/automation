@@ -92,8 +92,8 @@ def get_service_log_detail_pattern(page: Page, plugin_name_kor, service_name='',
     kw_body_dis = page.locator('#kw_body_dis').inner_text()
     kw_attach_dis = page.locator('#kw_attach_dis').inner_text()
 
-    # 메일, SNS, 업무공유: 본문 및 제목 조회
-    if plugin_name_kor in ['메일', 'SNS', '업무공유']:
+    # 메일, SNS, workshare: 본문 및 제목 조회
+    if plugin_name_kor in ['메일', 'SNS', 'workshare']:
         # 제목 조회 후 저장
         subject = page.locator('#subject').inner_text()
         frame_name = ''
@@ -103,7 +103,7 @@ def get_service_log_detail_pattern(page: Page, plugin_name_kor, service_name='',
             frame_name = 'mailbody'
         elif plugin_name_kor == 'SNS':
             frame_name = 'snsbody'
-        elif plugin_name_kor == '업무공유':
+        elif plugin_name_kor == 'workshare':
             frame_name = 'worksharebody'
 
         # 프레임 이동
@@ -122,8 +122,8 @@ def get_service_log_detail_pattern(page: Page, plugin_name_kor, service_name='',
             print("-> 메신저 본문 최상위 메시지의 발생 일시값과 상세 이력의 발생일시가 서로 일치하지 않음")
             return False
 
-    # 댓글: 본문만 가져오기
-    elif plugin_name_kor == '댓글':
+    # comment: 본문만 가져오기
+    elif plugin_name_kor == 'comment':
         frame_name = 'commentbody'
         page.frame_locator(f'iframe[name="{frame_name}"]').locator('body').wait_for()
         body = page.frame_locator(f'iframe[name="{frame_name}"]').locator('body').inner_text()

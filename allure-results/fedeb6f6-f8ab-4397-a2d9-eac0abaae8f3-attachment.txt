@@ -1,3 +1,0 @@
-Screenshot taken at : D:\backup\dlp_new_automation\report\screenshots\test_naver_normal_send_failed_20241115_152256.jpg
-Result saved to JSON for case_id: naver_normal_send
-json file saved at : D:\backup\dlp_new_automation\test_services\mail\naver_mail\result\naver_normal_send_result.json

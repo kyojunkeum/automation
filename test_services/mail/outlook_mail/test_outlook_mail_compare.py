@@ -26,28 +26,31 @@ def click_confirm_if_popup_exists(page, timeout=3000):
         print("알림 팝업(확인 버튼)이 나타나지 않았습니다.")
 
 @allure.severity(allure.severity_level.TRIVIAL)
-@allure.step("Dooray Login Test")
+@allure.step("Outlook Login Test")
 #@pytest.mark.order("first")
-@pytest.mark.dependency(name="dooray_login")
-def test_dooray_login():
+@pytest.mark.dependency(name="outlook_login")
+def test_outlook_login():
     with sync_playwright() as p:
         # 브라우저 및 컨텍스트 생성
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
 
         try:
-            # 두레이 홈페이지 진입
-            page.goto("https://ewalkerdlp.dooray.com/")
+            # 홈페이지 진입
+            page.goto("https://outlook.office.com/")
             time.sleep(1)
 
             # 아이디 및 패스워드 입력
-            page.get_by_placeholder("아이디").click()
-            page.get_by_placeholder("아이디").fill("dlptest1")
-            page.get_by_placeholder("비밀번호").click()
-            page.get_by_placeholder("비밀번호").fill("S@@san_1004!")
-            time.sleep(1)
-            page.get_by_role("button", name="로그인").click()
+            page.get_by_placeholder("전자 메일, 전화 또는 Skype").click()
+            page.get_by_placeholder("전자 메일, 전화 또는 Skype").fill("soosan_kjkeum@naver.com")
+            page.get_by_role("button", name="다음").click()
+            time.sleep(3)
+            page.get_by_test_id("i0118").click()
+            page.get_by_test_id("i0118").fill("iwilltakeyou01!")
+            page.get_by_test_id("textButtonContainer").get_by_role("button", name="로그인").click()
+            page.get_by_label("아니요").click()
+
             time.sleep(3)
 
             # # 로그인 성공 여부 확인
@@ -59,7 +62,7 @@ def test_dooray_login():
 
             # 세션 상태 저장
             os.makedirs("session", exist_ok=True)
-            session_path = os.path.join("session", "dooraystorageState.json")
+            session_path = os.path.join("session", "outlookstorageState.json")
             context.storage_state(path=session_path)
 
         except Exception as e:
@@ -78,35 +81,41 @@ def test_dooray_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Dooray board Normal Test")
-@pytest.mark.dependency(name="dooray_normal_board")
-def test_dooray_normal_board(request):
+@allure.step("Outlook mail Normal Test")
+@pytest.mark.dependency(name="outlook_normal_mail")
+def test_outlook_normal_mail(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "dooraystorageState.json")
-        browser = p.chromium.launch(headless=True)
+        session_path = os.path.join("session", "outlookstorageState.json")
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/home")
+            page.goto("https://outlook.live.com/mail/0/", wait_until="domcontentloaded")
+            time.sleep(5)
 
-            # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_test_id("HomeLnb_ContainedButton").click()
+            # 새 메일
+            page.locator("button").filter(has_text="새 메일새 전자 메일 메시지를 만듭니다. (N)").click()
             time.sleep(1)
 
+            # 수신자 입력
+            page.get_by_label("받는 사람").click()
+            page.get_by_label("받는 사람", exact=True).fill("soosan_kjkeum@nate.com")
+            print("수신자 정보를 입력하였습니다.")
+
             # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("기본로깅테스트")
+            page.get_by_placeholder("제목 추가").click()
+            page.get_by_placeholder("제목 추가").fill("기본로깅테스트")
 
             # 본문 입력
-            page.get_by_role("paragraph").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("기본로깅테스트")
+            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").click()
+            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").fill("기본로깅테스트")
 
-            # 저장 클릭
-            page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 보내기 클릭
+            page.get_by_label("보내기", exact=True).click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -132,35 +141,41 @@ def test_dooray_normal_board(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray board Pattern Test")
-@pytest.mark.dependency(name="dooray_pattern_board")
-def test_dooray_pattern_board(request):
+@allure.step("Outlook mail Pattern Test")
+@pytest.mark.dependency(name="outlook_pattern_mail")
+def test_outlook_pattern_mail(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "dooraystorageState.json")
-        browser = p.chromium.launch(headless=True)
+        session_path = os.path.join("session", "outlookstorageState.json")
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/home")
+            page.goto("https://outlook.live.com/mail/0/", wait_until="domcontentloaded")
+            time.sleep(5)
 
-            # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_test_id("HomeLnb_ContainedButton").click()
+            # 새 메일
+            page.locator("button").filter(has_text="새 메일새 전자 메일 메시지를 만듭니다. (N)").click()
             time.sleep(1)
 
+            # 수신자 입력
+            page.get_by_label("받는 사람").click()
+            page.get_by_label("받는 사람", exact=True).fill("soosan_kjkeum@nate.com")
+            print("수신자 정보를 입력하였습니다.")
+
             # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("개인정보테스트")
+            page.get_by_placeholder("제목 추가").click()
+            page.get_by_placeholder("제목 추가").fill("개인정보테스트")
 
             # 본문 입력
-            page.get_by_role("paragraph").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("kjkeum@naver.com")
+            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").click()
+            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").fill("kjkeum@nate.com")
 
-            # 저장 클릭
-            page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 보내기 클릭
+            page.get_by_label("보내기", exact=True).click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -185,35 +200,41 @@ def test_dooray_pattern_board(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray board Keyword Test")
-@pytest.mark.dependency(name="dooray_keyword_board")
-def test_dooray_keyword_board(request):
+@allure.step("Outlook mail Keyword Test")
+@pytest.mark.dependency(name="outlook_keyword_mail")
+def test_outlook_keyword_mail(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "dooraystorageState.json")
-        browser = p.chromium.launch(headless=True)
+        session_path = os.path.join("session", "outlookstorageState.json")
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/home")
+            page.goto("https://outlook.live.com/mail/0/", wait_until="domcontentloaded")
+            time.sleep(5)
 
-            # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_test_id("HomeLnb_ContainedButton").click()
+            # 새 메일
+            page.locator("button").filter(has_text="새 메일새 전자 메일 메시지를 만듭니다. (N)").click()
             time.sleep(1)
 
+            # 수신자 입력
+            page.get_by_label("받는 사람").click()
+            page.get_by_label("받는 사람", exact=True).fill("soosan_kjkeum@nate.com")
+            print("수신자 정보를 입력하였습니다.")
+
             # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("키워드테스트")
+            page.get_by_placeholder("제목 추가").click()
+            page.get_by_placeholder("제목 추가").fill("키워드테스트")
 
             # 본문 입력
-            page.get_by_role("paragraph").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("키워드테스트")
+            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").click()
+            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").fill("키워드테스트")
 
-            # 저장 클릭
-            page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 보내기 클릭
+            page.get_by_label("보내기", exact=True).click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -238,41 +259,37 @@ def test_dooray_keyword_board(request):
             browser.close()
 
 @allure.severity(allure.severity_level.BLOCKER)
-@allure.step("Dooray board attach Test")
-@pytest.mark.dependency(name="dooray_attach_board")
-def test_dooray_attach_board(request):
+@allure.step("Outlook mail attach Test")
+@pytest.mark.dependency(name="outlook_attach_mail")
+def test_outlook_attach_mail(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "dooraystorageState.json")
-        browser = p.chromium.launch(headless=True)
+        session_path = os.path.join("session", "outlookstorageState.json")
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/home")
+            page.goto("https://outlook.live.com/mail/0/", wait_until="domcontentloaded")
+            time.sleep(5)
 
-            # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_test_id("HomeLnb_ContainedButton").click()
+            # 새 메일
+            page.locator("button").filter(has_text="새 메일새 전자 메일 메시지를 만듭니다. (N)").click()
             time.sleep(1)
 
-            # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("첨부파일테스트")
-
-            # 본문 입력
-            page.get_by_role("paragraph").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("첨부파일테스트")
-
             # 파일 첨부
-            with page.expect_file_chooser() as fc_info:
-                page.get_by_test_id("HomeBoardArticleEditorAttachButton_GhostButton").click()
-            file_chooser = fc_info.value
-            file_chooser.set_files(r"D:/dlp_new_automation/test_files/pattern.docx")
+            page.get_by_role("tab", name="삽입").click()
+            time.sleep(1)
+            page.get_by_label("파일 첨부").click()
+            time.sleep(1)
+            file_input = page.locator("[data-testid='local-computer-filein']").first
+            file_input.set_input_files("D:/dlp_new_automation/test_files/test.jpg")
+            print("파일 첨부가 완료되었습니다.")
 
-            # # 저장 클릭
-            # page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 보내기 클릭
+            # page.get_by_label("보내기", exact=True).click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -318,17 +335,17 @@ def compare_ui_and_values(page, row_index, expected_counts):
 
 @pytest.mark.dependency(
   depends=[
-    "dooray_login",
-    "dooray_normal_board",
-    "dooray_pattern_board",
-    "dooray_keyword_board",
-    "dooray_attach_board"
+    "outlook_login",
+    "outlook_normal_mail",
+    "outlook_pattern_mail",
+    "outlook_keyword_mail",
+    "outlook_attach_mail"
   ]
 )
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray board Dlp Logging check")
-def test_compare_result_dooray_board():
+@allure.step("Outlook mail Dlp Logging check")
+def test_compare_result_outlook_mail():
     with sync_playwright() as p:
         # 브라우저 실행
         browser = p.chromium.launch(headless=True)
@@ -361,17 +378,17 @@ def test_compare_result_dooray_board():
             page.locator("#selectedDetail").select_option("service")
             # 두레이게시판 선택
             page.locator("#tokenfield2-tokenfield").click()
-            page.get_by_text("[SNS] 두레이 게시판").click()
+            page.get_by_text("[웹메일] Outlook메일").click()
             # 검색 클릭
             page.get_by_role("button", name="검색").click()
             time.sleep(5)
 
             # 딕셔너리 기댓값과 UI 데이터를 비교
             test_cases = [
-                {"row_index": 7, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"}},  # 일반 로깅
-                {"row_index": 5, "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"}},  # 개인정보 로깅
-                {"row_index": 3, "expected": {"pattern_count": "0", "keyword_count": "2", "file_count": "0"}},  # 키워드 로깅
-                {"row_index": 1, "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "1"}},  # 첨부파일 로깅
+                {"row_index": 9, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"}},  # 일반 로깅
+                {"row_index": 7, "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"}},  # 개인정보 로깅
+                {"row_index": 5, "expected": {"pattern_count": "0", "keyword_count": "2", "file_count": "0"}},  # 키워드 로깅
+                {"row_index": 1, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"}},  # 첨부파일 로깅
             ]
 
             for case in test_cases:
@@ -384,11 +401,11 @@ def test_compare_result_dooray_board():
 
             # 실패 시 스크린샷 저장
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_board")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_outlook_mail")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_board_failure_screenshot",
+            allure.attach.file(screenshot_path, name="outlook_mail_failure_screenshot",
                                attachment_type=allure.attachment_type.JPG)
 
             raise

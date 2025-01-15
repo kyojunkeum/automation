@@ -27,7 +27,7 @@ def click_confirm_if_popup_exists(page, timeout=3000):
 
 @allure.severity(allure.severity_level.TRIVIAL)
 @allure.step("Dooray Login Test")
-@pytest.mark.order("first")
+#@pytest.mark.order("first")
 @pytest.mark.dependency(name="dooray_login")
 def test_dooray_login():
     with sync_playwright() as p:

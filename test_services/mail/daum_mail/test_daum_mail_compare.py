@@ -26,10 +26,10 @@ def click_confirm_if_popup_exists(page, timeout=3000):
         print("알림 팝업(확인 버튼)이 나타나지 않았습니다.")
 
 @allure.severity(allure.severity_level.TRIVIAL)
-@allure.step("Dooray Login Test")
+@allure.step("Daum Login Test")
 #@pytest.mark.order("first")
-@pytest.mark.dependency(name="dooray_login")
-def test_dooray_login():
+@pytest.mark.dependency(name="daum_login")
+def test_daum_login():
     with sync_playwright() as p:
         # 브라우저 및 컨텍스트 생성
         browser = p.chromium.launch(headless=True)
@@ -37,29 +37,28 @@ def test_dooray_login():
         page = context.new_page()
 
         try:
-            # 두레이 홈페이지 진입
-            page.goto("https://ewalkerdlp.dooray.com/")
+            # 네이트 홈페이지 진입
+            page.goto("https://www.daum.net/")
             time.sleep(1)
 
             # 아이디 및 패스워드 입력
-            page.get_by_placeholder("아이디").click()
-            page.get_by_placeholder("아이디").fill("dlptest1")
+            page.get_by_role("link", name="카카오계정으로 로그인").click()
+            page.get_by_placeholder("카카오메일 아이디, 이메일, 전화번호 ").click()
+            page.get_by_placeholder("카카오메일 아이디, 이메일, 전화번호 ").fill("soosan_kjkeum@naver.com")
             page.get_by_placeholder("비밀번호").click()
-            page.get_by_placeholder("비밀번호").fill("S@@san_1004!")
+            page.get_by_placeholder("비밀번호").fill("iwilltakeyou01!")
             time.sleep(1)
-            page.get_by_role("button", name="로그인").click()
+            page.get_by_role("button", name="로그인", exact=True).click()
             time.sleep(3)
 
             # # 로그인 성공 여부 확인
-            # page.get_by_test_id("MyLoginProfileLayer").locator("img").click()
-            # page.locator("#tippy-7").get_by_text("dlptest1").click()
-            # page.wait_for_selector("role=link[name='dlptest1']", timeout=3000)
-            # assert page.get_by_role("link", name="dlptest1").is_visible() == True, "login failed. can't find the profile."
+            # page.wait_for_selector("role=link[name='금교준 님']", timeout=3000)
+            # assert page.get_by_role("link", name="금교준 님").is_visible() == True, "login failed. can't find the profile."
             # time.sleep(2)
 
             # 세션 상태 저장
             os.makedirs("session", exist_ok=True)
-            session_path = os.path.join("session", "dooraystorageState.json")
+            session_path = os.path.join("session", "daumstorageState.json")
             context.storage_state(path=session_path)
 
         except Exception as e:
@@ -78,12 +77,12 @@ def test_dooray_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Dooray board Normal Test")
-@pytest.mark.dependency(name="dooray_normal_board")
-def test_dooray_normal_board(request):
+@allure.step("Daum Normal Send Test")
+@pytest.mark.dependency(name="daum_normal_send")
+def test_daum_normal_send(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "dooraystorageState.json")
+        session_path = os.path.join("session", "daumstorageState.json")
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
@@ -91,22 +90,21 @@ def test_dooray_normal_board(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/home")
+            page.goto("https://mail.daum.net")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_test_id("HomeLnb_ContainedButton").click()
-            time.sleep(1)
+            page.get_by_role("button", name="내게쓰기").click()
 
             # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("기본로깅테스트")
+            page.get_by_label("제목").click()
+            page.get_by_label("제목").fill("기본로깅테스트")
 
             # 본문 입력
-            page.get_by_role("paragraph").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("기본로깅테스트")
+            page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.get_by_role("paragraph").first.click()
+            page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.locator("body").fill("기본로깅테스트\n\n\n\n\n\n")
 
-            # 저장 클릭
-            page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 보내기 클릭
+            page.get_by_role("button", name="보내기").click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -132,12 +130,12 @@ def test_dooray_normal_board(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray board Pattern Test")
-@pytest.mark.dependency(name="dooray_pattern_board")
-def test_dooray_pattern_board(request):
+@allure.step("Daum Pattern Send Test")
+@pytest.mark.dependency(name="daum_pattern_send")
+def test_daum_pattern_send(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "dooraystorageState.json")
+        session_path = os.path.join("session", "daumstorageState.json")
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
@@ -145,22 +143,21 @@ def test_dooray_pattern_board(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/home")
+            page.goto("https://mail.daum.net")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_test_id("HomeLnb_ContainedButton").click()
-            time.sleep(1)
+            page.get_by_role("button", name="내게쓰기").click()
 
             # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("개인정보테스트")
+            page.get_by_label("제목").click()
+            page.get_by_label("제목").fill("개인정보테스트")
 
             # 본문 입력
-            page.get_by_role("paragraph").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("kjkeum@naver.com")
+            page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.get_by_role("paragraph").first.click()
+            page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.locator("body").fill("kjkeum@nate.com\n\n\n\n\n\n")
 
-            # 저장 클릭
-            page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 보내기 클릭
+            page.get_by_role("button", name="보내기").click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -185,12 +182,12 @@ def test_dooray_pattern_board(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray board Keyword Test")
-@pytest.mark.dependency(name="dooray_keyword_board")
-def test_dooray_keyword_board(request):
+@allure.step("Daum Keyword Send Test")
+@pytest.mark.dependency(name="daum_keyword_send")
+def test_daum_keyword_send(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "dooraystorageState.json")
+        session_path = os.path.join("session", "daumstorageState.json")
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
@@ -198,22 +195,22 @@ def test_dooray_keyword_board(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/home")
+            page.goto("https://mail.daum.net")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_test_id("HomeLnb_ContainedButton").click()
-            time.sleep(1)
+            page.get_by_role("button", name="내게쓰기").click()
 
             # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("키워드테스트")
+            page.get_by_label("제목").click()
+            page.get_by_label("제목").fill("키워드테스트")
 
             # 본문 입력
-            page.get_by_role("paragraph").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("키워드테스트")
+            page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.get_by_role("paragraph").first.click()
+            page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.locator("body").fill(
+                "키워드테스트\n\n\n\n\n\n")
 
-            # 저장 클릭
-            page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 보내기 클릭
+            page.get_by_role("button", name="보내기").click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -238,12 +235,12 @@ def test_dooray_keyword_board(request):
             browser.close()
 
 @allure.severity(allure.severity_level.BLOCKER)
-@allure.step("Dooray board attach Test")
-@pytest.mark.dependency(name="dooray_attach_board")
-def test_dooray_attach_board(request):
+@allure.step("Daum attach Send Test")
+@pytest.mark.dependency(name="daum_attach_send")
+def test_daum_attach_send(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "dooraystorageState.json")
+        session_path = os.path.join("session", "daumstorageState.json")
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
@@ -251,28 +248,25 @@ def test_dooray_attach_board(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/home")
+            page.goto("https://mail.daum.net")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_test_id("HomeLnb_ContainedButton").click()
-            time.sleep(1)
+            page.get_by_role("button", name="내게쓰기").click()
 
             # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("첨부파일테스트")
+            page.get_by_label("제목").click()
+            page.get_by_label("제목").fill("첨부파일테스트")
 
-            # 본문 입력
-            page.get_by_role("paragraph").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("첨부파일테스트")
+            # 3. 파일 첨부 클릭
+            # page.get_by_label("파일 첨부하기").click()
+            # page.get_by_label("파일 첨부하기").click()
+            page.get_by_label("파일 첨부하기").set_input_files("D:/dlp_new_automation/test_files/pattern.docx")
+            page.wait_for_timeout(2000)
+            print("파일을 첨부하였습니다.")
 
-            # 파일 첨부
-            with page.expect_file_chooser() as fc_info:
-                page.get_by_test_id("HomeBoardArticleEditorAttachButton_GhostButton").click()
-            file_chooser = fc_info.value
-            file_chooser.set_files(r"D:/dlp_new_automation/test_files/pattern.docx")
-
-            # # 저장 클릭
-            # page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 보내기 클릭
+            time.sleep(2)
+            page.get_by_role("button", name="보내기").click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -318,17 +312,17 @@ def compare_ui_and_values(page, row_index, expected_counts):
 
 @pytest.mark.dependency(
   depends=[
-    "dooray_login",
-    "dooray_normal_board",
-    "dooray_pattern_board",
-    "dooray_keyword_board",
-    "dooray_attach_board"
+    "daum_login",
+    "daum_normal_send",
+    "daum_pattern_send",
+    "daum_keyword_send",
+    "daum_attach_send"
   ]
 )
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray board Dlp Logging check")
-def test_compare_result_dooray_board():
+@allure.step("Daum Dlp Logging check")
+def test_compare_result_daum_mail():
     with sync_playwright() as p:
         # 브라우저 실행
         browser = p.chromium.launch(headless=True)
@@ -359,9 +353,9 @@ def test_compare_result_dooray_board():
             time.sleep(1)
             # 서비스 선택
             page.locator("#selectedDetail").select_option("service")
-            # 두레이게시판 선택
+            # 네이트메일 선택
             page.locator("#tokenfield2-tokenfield").click()
-            page.get_by_text("[SNS] 두레이 게시판").click()
+            page.get_by_text("[웹메일] 다음메일").click()
             # 검색 클릭
             page.get_by_role("button", name="검색").click()
             time.sleep(5)
@@ -383,12 +377,11 @@ def test_compare_result_dooray_board():
         except Exception as e:
 
             # 실패 시 스크린샷 저장
-            # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_board")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_daum_mail")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_board_failure_screenshot",
+            allure.attach.file(screenshot_path, name="daum_mail_failure_screenshot",
                                attachment_type=allure.attachment_type.JPG)
 
             raise

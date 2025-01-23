@@ -37,7 +37,7 @@ def test_naverworks_login():
         page = context.new_page()
 
         try:
-            # 두레이 홈페이지 진입
+            # 네이버웍스 홈페이지 진입
             page.goto("https://naver.worksmobile.com")
             time.sleep(1)
 
@@ -70,7 +70,7 @@ def test_naverworks_login():
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_nate_login")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_naverworks_board_comment_login")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
@@ -84,7 +84,7 @@ def test_naverworks_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Dooray naverworks board Comment normal Test")
+@allure.step("naverworks board Comment normal Test")
 @pytest.mark.dependency(name="naverworks_normal_board_comment")
 def test_naverworks_normal_board_comment(request):
     with sync_playwright() as p:

@@ -84,7 +84,7 @@ def test_dooray_normal_mail(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
@@ -111,6 +111,7 @@ def test_dooray_normal_mail(request):
             # 본문 입력
             page1.get_by_role("application").locator("div").nth(3).click()
             page1.get_by_role("application").locator("div").nth(1).fill("기본로깅테스트\n\n")
+            time.sleep(1)
 
             # 보내기 클릭
             page1.get_by_test_id("MailWriteFooter_ContainedButton").click()
@@ -147,7 +148,7 @@ def test_dooray_pattern_mail(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
@@ -175,6 +176,7 @@ def test_dooray_pattern_mail(request):
             # 본문 입력
             page1.get_by_role("application").locator("div").nth(3).click()
             page1.get_by_role("application").locator("div").nth(1).fill("kjkeum@nate.com\n\n")
+            time.sleep(1)
 
             # 보내기 클릭
             page1.get_by_test_id("MailWriteFooter_ContainedButton").click()
@@ -210,7 +212,7 @@ def test_dooray_keyword_mail(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
@@ -238,6 +240,7 @@ def test_dooray_keyword_mail(request):
             # 본문 입력
             page1.get_by_role("application").locator("div").nth(3).click()
             page1.get_by_role("application").locator("div").nth(1).fill("키워드테스트\n\n")
+            time.sleep(1)
 
             # 보내기 클릭
             page1.get_by_test_id("MailWriteFooter_ContainedButton").click()
@@ -273,7 +276,7 @@ def test_dooray_attach_mail(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
@@ -364,7 +367,7 @@ def compare_ui_and_values(page, row_index, expected_counts):
 def test_compare_result_dooray_mail():
     with sync_playwright() as p:
         # 브라우저 실행
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
 
         # BrowserContext 생성 (HTTPS 오류 무시 설정)
         context = browser.new_context(ignore_https_errors=True)

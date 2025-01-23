@@ -2,6 +2,7 @@ import subprocess
 import sys
 import os
 import paramiko
+import time
 
 
 def run_tests_and_generate_report():
@@ -78,7 +79,7 @@ def ensure_remote_directory_exists(sftp, remote_directory):
 def upload_report():
     hostname = "172.16.150.138"
     username = "root"
-    password = "qkfwjswmd138**"  # 비밀번호를 필요에 따라 입력
+    password = "dkswjswmd138*"  # 비밀번호를 필요에 따라 입력
 
     # SSH 클라이언트 설정
     ssh = paramiko.SSHClient()
@@ -115,8 +116,22 @@ def upload_report():
 
 
 if __name__ == "__main__":
-    # 테스트 및 리포트 생성 실행
-    run_tests_and_generate_report()
 
-    # 리포트를 서버로 전송
-    upload_report()
+    repeat_count = 2
+    interval = 5
+
+    for _ in range(repeat_count):
+        try:
+
+            # 테스트 및 리포트 생성 실행
+            run_tests_and_generate_report()
+
+            # 리포트를 서버로 전송
+            upload_report()
+        except Exception as e:
+            # 에러 처리
+            print(F"에러 발생: {e}")
+
+        time.sleep(interval)
+
+    print("모든 작업 완료")

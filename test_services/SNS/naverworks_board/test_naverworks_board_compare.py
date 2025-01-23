@@ -26,10 +26,10 @@ def click_confirm_if_popup_exists(page, timeout=3000):
         print("알림 팝업(확인 버튼)이 나타나지 않았습니다.")
 
 @allure.severity(allure.severity_level.TRIVIAL)
-@allure.step("Yahoo Login Test")
+@allure.step("Naverworks Login Test")
 #@pytest.mark.order("first")
-@pytest.mark.dependency(name="yahoo_login")
-def test_yahoo_login():
+@pytest.mark.dependency(name="naverworks_login")
+def test_naverworks_login():
     with sync_playwright() as p:
         # 브라우저 및 컨텍스트 생성
         browser = p.chromium.launch(headless=False)
@@ -37,25 +37,23 @@ def test_yahoo_login():
         page = context.new_page()
 
         try:
-            # 홈페이지 진입
-            page.goto("https://mail.yahoo.com/")
+            # 네이버웍스 홈페이지 진입
+            page.goto("https://naver.worksmobile.com")
             time.sleep(1)
 
-            login_link = page.get_by_role("link", name="로그인")
-            if login_link.is_visible():
-                print("로그인 버튼이 존재합니다. 클릭합니다.")
-                login_link.click()
-            else:
-                print("로그인 버튼이 존재하지 않습니다. 다음으로 넘어갑니다.")
-
             # 아이디 및 패스워드 입력
-            page.get_by_placeholder(" ").click()
-            page.get_by_placeholder(" ").fill("soosan_kjkeum")
-            page.get_by_role("button", name="다음").click()
-            time.sleep(3)
-            page.get_by_placeholder(" ").click()
-            page.get_by_placeholder(" ").fill("iwilltakeyou01!")
-            page.get_by_role("button", name="다음").click()
+            with page.expect_popup() as page1_info:
+                page.get_by_role("link", name="로그인", exact=True).click()
+            page1 = page1_info.value
+            time.sleep(1)
+            page1.get_by_placeholder("또는 id@group.xxx").click()
+            page1.get_by_placeholder("또는 id@group.xxx").fill("dlptest1@ewakerdlp.by-works.com")
+            page1.get_by_role("button", name="로그인", exact=True).click()
+            time.sleep(1)
+            page1.get_by_placeholder("비밀번호").click()
+            page1.get_by_placeholder("비밀번호").fill("S@@san_1004!")
+            time.sleep(1)
+            page1.get_by_role("button", name="로그인").click()
             time.sleep(3)
 
             # # 로그인 성공 여부 확인
@@ -67,17 +65,17 @@ def test_yahoo_login():
 
             # 세션 상태 저장
             os.makedirs("session", exist_ok=True)
-            session_path = os.path.join("session", "yahoostorageState.json")
+            session_path = os.path.join("session", "naverworksstorageState.json")
             context.storage_state(path=session_path)
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_login")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_naverworks_board_login")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="login_failure_screenshot",
+                               attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -86,38 +84,41 @@ def test_yahoo_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Yahoo mail Normal Test")
-@pytest.mark.dependency(name="yahoo_normal_mail")
-def test_yahoo_normal_mail(request):
+@allure.step("naverworks board Comment normal Test")
+@pytest.mark.dependency(name="naverworks_normal_board")
+def test_naverworks_normal_board(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "yahoostorageState.json")
+        session_path = os.path.join("session", "naverworksstorageState.json")
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
-            # 세션 유지한 채로 메일쓰기 페이지로 이동
-            page.goto("https://mail.yahoo.com/d/compose", wait_until="domcontentloaded")
-            time.sleep(5)
-
-            # 수신자 입력
-            page.get_by_label("받는 사람To, 연락처").click()
+            # 세션 유지한 채로 게시판 페이지로 이동
+            page.goto("https://board.worksmobile.com/")
             time.sleep(1)
-            page.get_by_label("받는 사람To, 연락처").fill("soosan_kjkeum@nate.com")
-            print("수신자 정보를 입력하였습니다.")
+
+            # 자유게시판에 글쓰기
+            page.get_by_role("button", name="글쓰기").click()
+            page.locator("label").filter(has_text="자유게시판").click()
+            page.get_by_role("button", name="확인").click()
+            time.sleep(1)
 
             # 제목 입력
-            page.locator("[data-test-id=\"compose-subject\"]").click()
-            page.locator("[data-test-id=\"compose-subject\"]").fill("기본로깅테스트")
+            page.get_by_placeholder("제목을 입력하세요").click()
+            page.get_by_placeholder("제목을 입력하세요").fill("기본로깅테스트")
 
             # 본문 입력
-            page.locator("[data-test-id=\"rte\"]").click()
-            page.locator("[data-test-id=\"rte\"]").fill("기본로깅테스트")
+            page.locator("#articleEditor iframe").content_frame.locator(".workseditor-content").click()
+            page.locator("#articleEditor iframe").content_frame.locator(".workseditor-content").fill("기본로깅테스트")
 
-            # 보내기 클릭
-            page.locator("[data-test-id=\"compose-send-button\"]").click()
+            # 저장 클릭
+            page.get_by_role("button", name="등록", exact=True).click()
+            time.sleep(1)
+            page.get_by_text("게시글 등록 알림 보내기").click()
+            page.get_by_role("button", name="확인").click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -143,38 +144,41 @@ def test_yahoo_normal_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("yahoo mail Pattern Test")
-@pytest.mark.dependency(name="yahoo_pattern_mail")
-def test_yahoo_pattern_mail(request):
+@allure.step("Naverworks board Pattern Test")
+@pytest.mark.dependency(name="naverworks_pattern_board")
+def test_naverworks_pattern_board(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "yahoostorageState.json")
+        session_path = os.path.join("session", "naverworksstorageState.json")
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
-            # 세션 유지한 채로 메일쓰기 페이지로 이동
-            page.goto("https://mail.yahoo.com/d/compose", wait_until="domcontentloaded")
-            time.sleep(5)
-
-            # 수신자 입력
-            page.get_by_label("받는 사람To, 연락처").click()
+            # 세션 유지한 채로 게시판 페이지로 이동
+            page.goto("https://board.worksmobile.com/")
             time.sleep(1)
-            page.get_by_label("받는 사람To, 연락처").fill("soosan_kjkeum@nate.com")
-            print("수신자 정보를 입력하였습니다.")
+
+            # 자유게시판에 글쓰기
+            page.get_by_role("button", name="글쓰기").click()
+            page.locator("label").filter(has_text="자유게시판").click()
+            page.get_by_role("button", name="확인").click()
+            time.sleep(1)
 
             # 제목 입력
-            page.locator("[data-test-id=\"compose-subject\"]").click()
-            page.locator("[data-test-id=\"compose-subject\"]").fill("개인정보테스트")
+            page.get_by_placeholder("제목을 입력하세요").click()
+            page.get_by_placeholder("제목을 입력하세요").fill("개인정보테스트")
 
             # 본문 입력
-            page.locator("[data-test-id=\"rte\"]").click()
-            page.locator("[data-test-id=\"rte\"]").fill("kjkeum@nate.com")
+            page.locator("#articleEditor iframe").content_frame.locator(".workseditor-content").click()
+            page.locator("#articleEditor iframe").content_frame.locator(".workseditor-content").fill("kjkeum@nate.com")
 
-            # 보내기 클릭
-            page.locator("[data-test-id=\"compose-send-button\"]").click()
+            # 저장 클릭
+            page.get_by_role("button", name="등록", exact=True).click()
+            time.sleep(1)
+            page.get_by_text("게시글 등록 알림 보내기").click()
+            page.get_by_role("button", name="확인").click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -199,38 +203,41 @@ def test_yahoo_pattern_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Yahoo mail Keyword Test")
-@pytest.mark.dependency(name="yahoo_keyword_mail")
-def test_yahoo_keyword_mail(request):
+@allure.step("Naverworks board Keyword Test")
+@pytest.mark.dependency(name="naverworks_keyword_board")
+def test_naverworks_keyword_board(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "yahoostorageState.json")
+        session_path = os.path.join("session", "naverworksstorageState.json")
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
-            # 세션 유지한 채로 메일쓰기 페이지로 이동
-            page.goto("https://mail.yahoo.com/d/compose", wait_until="domcontentloaded")
-            time.sleep(5)
-
-            # 수신자 입력
-            page.get_by_label("받는 사람To, 연락처").click()
+            # 세션 유지한 채로 게시판 페이지로 이동
+            page.goto("https://board.worksmobile.com/")
             time.sleep(1)
-            page.get_by_label("받는 사람To, 연락처").fill("soosan_kjkeum@nate.com")
-            print("수신자 정보를 입력하였습니다.")
+
+            # 자유게시판에 글쓰기
+            page.get_by_role("button", name="글쓰기").click()
+            page.locator("label").filter(has_text="자유게시판").click()
+            page.get_by_role("button", name="확인").click()
+            time.sleep(1)
 
             # 제목 입력
-            page.locator("[data-test-id=\"compose-subject\"]").click()
-            page.locator("[data-test-id=\"compose-subject\"]").fill("키워드테스트")
+            page.get_by_placeholder("제목을 입력하세요").click()
+            page.get_by_placeholder("제목을 입력하세요").fill("키워드테스트")
 
             # 본문 입력
-            page.locator("[data-test-id=\"rte\"]").click()
-            page.locator("[data-test-id=\"rte\"]").fill("키워드테스트")
+            page.locator("#articleEditor iframe").content_frame.locator(".workseditor-content").click()
+            page.locator("#articleEditor iframe").content_frame.locator(".workseditor-content").fill("키워드테스트")
 
-            # 보내기 클릭
-            page.locator("[data-test-id=\"compose-send-button\"]").click()
+            # 저장 클릭
+            page.get_by_role("button", name="등록", exact=True).click()
+            time.sleep(1)
+            page.get_by_text("게시글 등록 알림 보내기").click()
+            page.get_by_role("button", name="확인").click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -255,36 +262,58 @@ def test_yahoo_keyword_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.BLOCKER)
-@allure.step("Yahoo mail attach Test")
-@pytest.mark.dependency(name="yahoo_attach_mail")
-def test_yahoo_attach_mail(request):
+@allure.step("Naverworks board attach Test")
+@pytest.mark.dependency(name="naverworks_attach_board")
+def test_naverworks_attach_board(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "yahoostorageState.json")
+        session_path = os.path.join("session", "naverworksstorageState.json")
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
-            # 세션 유지한 채로 메일쓰기 페이지로 이동
-            page.goto("https://mail.yahoo.com/d/compose", wait_until="domcontentloaded")
-            time.sleep(5)
+            # 세션 유지한 채로 게시판 페이지로 이동
+            page.goto("https://board.worksmobile.com/")
+            time.sleep(1)
+
+            # 자유게시판에 글쓰기
+            page.get_by_role("button", name="글쓰기").click()
+            page.locator("label").filter(has_text="자유게시판").click()
+            page.get_by_role("button", name="확인").click()
+            time.sleep(1)
+
+            # 제목 입력
+            page.get_by_placeholder("제목을 입력하세요").click()
+            page.get_by_placeholder("제목을 입력하세요").fill("첨부파일테스트")
+
+            # 본문 입력
+            page.locator("#articleEditor iframe").content_frame.locator(".workseditor-content").click()
+            page.locator("#articleEditor iframe").content_frame.locator(".workseditor-content").fill("첨부파일테스트")
 
             # 파일 첨부
-            page.locator("[data-test-id=\"icon-btn-attach\"]").click()
-            time.sleep(1)
-            page.locator("[data-test-id='attach-from-computer-list-btn']").click()
-            time.sleep(1)
-            # page.get_by_label("컴퓨터에서 파일 첨부").set_input_files("D:/dlp_new_automation/test_files/pattern.docx")
-            page.locator("input[type='file']").set_input_files("D:/dlp_new_automation/test_files/pattern.docx")
-            page.wait_for_timeout(2000)
+            with page.expect_file_chooser() as fc_info:
+                page.get_by_role("button", name="내 PC").first.click()
+
+            file_chooser = fc_info.value
+            file_chooser.set_files(r"D:/dlp_new_automation/test_files/pattern.docx")
+
+            # # 파일 첨부
+            # with page.expect_file_chooser() as fc_info:
+            #     page.get_by_test_id("DetailContentEditToolbar_GhostButton").click()
+            #
+            # file_chooser = fc_info.value
+            # file_chooser.set_files(r"D:/dlp_new_automation/test_files/pattern.docx")
+
             print("파일을 첨부하였습니다.")
+            time.sleep(2)
 
-            # page.locator("body").set_input_files("D:/dlp_new_automation/test_files/pattern.docx")
-
-            # 보내기 클릭
-            page.locator("[data-test-id=\"compose-send-button\"]").click()
+            # 저장 클릭
+            page.get_by_role("button", name="등록", exact=True).click()
+            time.sleep(1)
+            page.get_by_text("게시글 등록 알림 보내기").click()
+            page.get_by_role("button", name="확인").click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -330,17 +359,17 @@ def compare_ui_and_values(page, row_index, expected_counts):
 
 @pytest.mark.dependency(
   depends=[
-    "yahoo_login",
-    "yahoo_normal_mail",
-    "yahoo_pattern_mail",
-    "yahoo_keyword_mail",
-    "yahoo_attach_mail"
+    "naverworks_login",
+    "naverworks_normal_board",
+    "naverworks_pattern_board",
+    "naverworks_keyword_board",
+    "naverworks_attach_board"
   ]
 )
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Yahoo mail Dlp Logging check")
-def test_compare_result_yahoo_mail():
+@allure.step("Naverworks board Dlp Logging check")
+def test_compare_result_naverworks_board():
     with sync_playwright() as p:
         # 브라우저 실행
         browser = p.chromium.launch(headless=True)
@@ -371,18 +400,18 @@ def test_compare_result_yahoo_mail():
             time.sleep(1)
             # 서비스 선택
             page.locator("#selectedDetail").select_option("service")
-            # 두레이게시판 선택
+            # 두레이 캘린더 선택
             page.locator("#tokenfield2-tokenfield").click()
-            page.get_by_text("[웹메일] 야후메일").click()
+            page.get_by_text("[SNS] 네이버웍스 게시판").click()
             # 검색 클릭
             page.get_by_role("button", name="검색").click()
             time.sleep(5)
 
             # 딕셔너리 기댓값과 UI 데이터를 비교
             test_cases = [
-                {"row_index": 7, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"}},  # 일반 로깅
-                {"row_index": 5, "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"}},  # 개인정보 로깅
-                {"row_index": 3, "expected": {"pattern_count": "0", "keyword_count": "2", "file_count": "0"}},  # 키워드 로깅
+                {"row_index": 24, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"}},  # 일반 로깅
+                {"row_index": 22, "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"}},  # 개인정보 로깅
+                {"row_index": 20, "expected": {"pattern_count": "0", "keyword_count": "2", "file_count": "0"}},  # 키워드 로깅
                 {"row_index": 1, "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "1"}},  # 첨부파일 로깅
             ]
 
@@ -396,11 +425,11 @@ def test_compare_result_yahoo_mail():
 
             # 실패 시 스크린샷 저장
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_yahoo_mail")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_naverworks_board")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="yahoo_mail_failure_screenshot",
+            allure.attach.file(screenshot_path, name="naverworks_board_failure_screenshot",
                                attachment_type=allure.attachment_type.JPG)
 
             raise

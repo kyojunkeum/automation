@@ -77,7 +77,7 @@ def test_dooray_login():
         finally:
             browser.close()
 
-@allure.severity(allure.severity_level.NORMAL)
+@allure.severity(allure.severity_level.CRITICAL)
 @allure.step("Dooray drive pattern Test")
 @pytest.mark.dependency(name="dooray_pattern_drive")
 def test_dooray_pattern_drive(request):

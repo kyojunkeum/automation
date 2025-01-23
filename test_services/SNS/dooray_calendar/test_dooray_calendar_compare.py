@@ -26,10 +26,10 @@ def click_confirm_if_popup_exists(page, timeout=3000):
         print("알림 팝업(확인 버튼)이 나타나지 않았습니다.")
 
 @allure.severity(allure.severity_level.TRIVIAL)
-@allure.step("Yahoo Login Test")
+@allure.step("Dooray Login Test")
 #@pytest.mark.order("first")
-@pytest.mark.dependency(name="yahoo_login")
-def test_yahoo_login():
+@pytest.mark.dependency(name="dooray_login")
+def test_dooray_login():
     with sync_playwright() as p:
         # 브라우저 및 컨텍스트 생성
         browser = p.chromium.launch(headless=False)
@@ -37,25 +37,17 @@ def test_yahoo_login():
         page = context.new_page()
 
         try:
-            # 홈페이지 진입
-            page.goto("https://mail.yahoo.com/")
+            # 두레이 홈페이지 진입
+            page.goto("https://ewalkerdlp.dooray.com/")
             time.sleep(1)
 
-            login_link = page.get_by_role("link", name="로그인")
-            if login_link.is_visible():
-                print("로그인 버튼이 존재합니다. 클릭합니다.")
-                login_link.click()
-            else:
-                print("로그인 버튼이 존재하지 않습니다. 다음으로 넘어갑니다.")
-
             # 아이디 및 패스워드 입력
-            page.get_by_placeholder(" ").click()
-            page.get_by_placeholder(" ").fill("soosan_kjkeum")
-            page.get_by_role("button", name="다음").click()
-            time.sleep(3)
-            page.get_by_placeholder(" ").click()
-            page.get_by_placeholder(" ").fill("iwilltakeyou01!")
-            page.get_by_role("button", name="다음").click()
+            page.get_by_placeholder("아이디").click()
+            page.get_by_placeholder("아이디").fill("dlptest1")
+            page.get_by_placeholder("비밀번호").click()
+            page.get_by_placeholder("비밀번호").fill("S@@san_1004!")
+            time.sleep(1)
+            page.get_by_role("button", name="로그인").click()
             time.sleep(3)
 
             # # 로그인 성공 여부 확인
@@ -67,7 +59,7 @@ def test_yahoo_login():
 
             # 세션 상태 저장
             os.makedirs("session", exist_ok=True)
-            session_path = os.path.join("session", "yahoostorageState.json")
+            session_path = os.path.join("session", "dooraystorageState.json")
             context.storage_state(path=session_path)
 
         except Exception as e:
@@ -86,38 +78,43 @@ def test_yahoo_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Yahoo mail Normal Test")
-@pytest.mark.dependency(name="yahoo_normal_mail")
-def test_yahoo_normal_mail(request):
+@allure.step("Dooray calendar Normal Test")
+@pytest.mark.dependency(name="dooray_normal_calendar")
+def test_dooray_normal_calendar(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "yahoostorageState.json")
+        session_path = os.path.join("session", "dooraystorageState.json")
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
-            # 세션 유지한 채로 메일쓰기 페이지로 이동
-            page.goto("https://mail.yahoo.com/d/compose", wait_until="domcontentloaded")
-            time.sleep(5)
+            # 세션 유지한 채로 캘린더 페이지로 이동
+            page.goto("https://ewalkerdlp.dooray.com/calendar")
 
-            # 수신자 입력
-            page.get_by_label("받는 사람To, 연락처").click()
+            # 새 일정 클릭 시 새 창이 열리는 것을 대기
+            with page.expect_popup() as page1_info:
+                page.get_by_test_id("open-new-schedule-dialog-button").click()
+            page1 = page1_info.value
             time.sleep(1)
-            page.get_by_label("받는 사람To, 연락처").fill("soosan_kjkeum@nate.com")
-            print("수신자 정보를 입력하였습니다.")
 
             # 제목 입력
-            page.locator("[data-test-id=\"compose-subject\"]").click()
-            page.locator("[data-test-id=\"compose-subject\"]").fill("기본로깅테스트")
+            page1.get_by_test_id("CalendarWidgetScheduleFormSubject_BottomLinedTextField").click()
+            page1.get_by_test_id("CalendarWidgetScheduleFormSubject_BottomLinedTextField").fill("기본로깅테스트")
 
             # 본문 입력
-            page.locator("[data-test-id=\"rte\"]").click()
-            page.locator("[data-test-id=\"rte\"]").fill("기본로깅테스트")
+            page1.get_by_role("paragraph").click()
+            page1.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("기본로깅테스트")
 
-            # 보내기 클릭
-            page.locator("[data-test-id=\"compose-send-button\"]").click()
+            # 저장 클릭
+            page1.get_by_test_id("DetailContentEditToolbar_ContainedButton").click()
+            time.sleep(1)
+
+            # 확인 클릭
+            confirm_button = page1.locator('data-testid=ConfirmDialog_ContainedButton')
+            if confirm_button.is_visible():
+                confirm_button.click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -143,38 +140,44 @@ def test_yahoo_normal_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("yahoo mail Pattern Test")
-@pytest.mark.dependency(name="yahoo_pattern_mail")
-def test_yahoo_pattern_mail(request):
+@allure.step("Dooray calendar Pattern Test")
+@pytest.mark.dependency(name="dooray_pattern_calendar")
+def test_dooray_pattern_calendar(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "yahoostorageState.json")
+        session_path = os.path.join("session", "dooraystorageState.json")
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
-            # 세션 유지한 채로 메일쓰기 페이지로 이동
-            page.goto("https://mail.yahoo.com/d/compose", wait_until="domcontentloaded")
-            time.sleep(5)
+            # 세션 유지한 채로 캘린더 페이지로 이동
+            page.goto("https://ewalkerdlp.dooray.com/calendar")
 
-            # 수신자 입력
-            page.get_by_label("받는 사람To, 연락처").click()
+            # 새 일정 클릭 시 새 창이 열리는 것을 대기
+            with page.expect_popup() as page1_info:
+                page.get_by_test_id("open-new-schedule-dialog-button").click()
+            page1 = page1_info.value
             time.sleep(1)
-            page.get_by_label("받는 사람To, 연락처").fill("soosan_kjkeum@nate.com")
-            print("수신자 정보를 입력하였습니다.")
 
             # 제목 입력
-            page.locator("[data-test-id=\"compose-subject\"]").click()
-            page.locator("[data-test-id=\"compose-subject\"]").fill("개인정보테스트")
+            page1.get_by_test_id("CalendarWidgetScheduleFormSubject_BottomLinedTextField").click()
+            page1.get_by_test_id("CalendarWidgetScheduleFormSubject_BottomLinedTextField").fill("개인정보테스트")
 
             # 본문 입력
-            page.locator("[data-test-id=\"rte\"]").click()
-            page.locator("[data-test-id=\"rte\"]").fill("kjkeum@nate.com")
+            page1.get_by_role("paragraph").click()
+            page1.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("kjkeum@nate.com")
+            time.sleep(1)
 
-            # 보내기 클릭
-            page.locator("[data-test-id=\"compose-send-button\"]").click()
+            # 저장 클릭
+            page1.get_by_test_id("DetailContentEditToolbar_ContainedButton").click()
+            time.sleep(1)
+
+            # 확인 클릭
+            confirm_button = page1.locator('data-testid=ConfirmDialog_ContainedButton')
+            if confirm_button.is_visible():
+                confirm_button.click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -199,38 +202,44 @@ def test_yahoo_pattern_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Yahoo mail Keyword Test")
-@pytest.mark.dependency(name="yahoo_keyword_mail")
-def test_yahoo_keyword_mail(request):
+@allure.step("Dooray calendar Keyword Test")
+@pytest.mark.dependency(name="dooray_keyword_calendar")
+def test_dooray_keyword_calendar(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "yahoostorageState.json")
+        session_path = os.path.join("session", "dooraystorageState.json")
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
-            # 세션 유지한 채로 메일쓰기 페이지로 이동
-            page.goto("https://mail.yahoo.com/d/compose", wait_until="domcontentloaded")
-            time.sleep(5)
+            # 세션 유지한 채로 캘린더 페이지로 이동
+            page.goto("https://ewalkerdlp.dooray.com/calendar")
 
-            # 수신자 입력
-            page.get_by_label("받는 사람To, 연락처").click()
+            # 새 일정 클릭 시 새 창이 열리는 것을 대기
+            with page.expect_popup() as page1_info:
+                page.get_by_test_id("open-new-schedule-dialog-button").click()
+            page1 = page1_info.value
             time.sleep(1)
-            page.get_by_label("받는 사람To, 연락처").fill("soosan_kjkeum@nate.com")
-            print("수신자 정보를 입력하였습니다.")
 
             # 제목 입력
-            page.locator("[data-test-id=\"compose-subject\"]").click()
-            page.locator("[data-test-id=\"compose-subject\"]").fill("키워드테스트")
+            page1.get_by_test_id("CalendarWidgetScheduleFormSubject_BottomLinedTextField").click()
+            page1.get_by_test_id("CalendarWidgetScheduleFormSubject_BottomLinedTextField").fill("키워드테스트")
 
             # 본문 입력
-            page.locator("[data-test-id=\"rte\"]").click()
-            page.locator("[data-test-id=\"rte\"]").fill("키워드테스트")
+            page1.get_by_role("paragraph").click()
+            page1.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("키워드테스트")
+            time.sleep(1)
 
-            # 보내기 클릭
-            page.locator("[data-test-id=\"compose-send-button\"]").click()
+            # 저장 클릭
+            page1.get_by_test_id("DetailContentEditToolbar_ContainedButton").click()
+            time.sleep(1)
+
+            # 확인 클릭
+            confirm_button = page1.locator('data-testid=ConfirmDialog_ContainedButton')
+            if confirm_button.is_visible():
+                confirm_button.click()
 
             # 3초 대기
             page.wait_for_timeout(3000)
@@ -255,39 +264,41 @@ def test_yahoo_keyword_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.BLOCKER)
-@allure.step("Yahoo mail attach Test")
-@pytest.mark.dependency(name="yahoo_attach_mail")
-def test_yahoo_attach_mail(request):
+@allure.step("Dooray calendar attach Test")
+@pytest.mark.dependency(name="dooray_attach_calendar")
+def test_dooray_attach_calendar(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
-        session_path = os.path.join("session", "yahoostorageState.json")
+        session_path = os.path.join("session", "dooraystorageState.json")
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(storage_state=session_path)
         page = context.new_page()
 
         try:
 
-            # 세션 유지한 채로 메일쓰기 페이지로 이동
-            page.goto("https://mail.yahoo.com/d/compose", wait_until="domcontentloaded")
-            time.sleep(5)
+            # 세션 유지한 채로 캘린더 페이지로 이동
+            page.goto("https://ewalkerdlp.dooray.com/calendar")
+
+            # 새 일정 클릭 시 새 창이 열리는 것을 대기
+            with page.expect_popup() as page1_info:
+                page.get_by_test_id("open-new-schedule-dialog-button").click()
+            page1 = page1_info.value
+            time.sleep(1)
+
+            # 제목 입력
+            page1.get_by_test_id("CalendarWidgetScheduleFormSubject_BottomLinedTextField").click()
+            page1.get_by_test_id("CalendarWidgetScheduleFormSubject_BottomLinedTextField").fill("첨부파일테스트")
+            time.sleep(1)
 
             # 파일 첨부
-            page.locator("[data-test-id=\"icon-btn-attach\"]").click()
-            time.sleep(1)
-            page.locator("[data-test-id='attach-from-computer-list-btn']").click()
-            time.sleep(1)
-            # page.get_by_label("컴퓨터에서 파일 첨부").set_input_files("D:/dlp_new_automation/test_files/pattern.docx")
-            page.locator("input[type='file']").set_input_files("D:/dlp_new_automation/test_files/pattern.docx")
-            page.wait_for_timeout(2000)
+            with page1.expect_file_chooser() as fc_info:
+                page1.get_by_test_id("DetailContentEditToolbar_GhostButton").click()
+
+            file_chooser = fc_info.value
+            file_chooser.set_files(r"D:/dlp_new_automation/test_files/pattern.docx")
+
             print("파일을 첨부하였습니다.")
-
-            # page.locator("body").set_input_files("D:/dlp_new_automation/test_files/pattern.docx")
-
-            # 보내기 클릭
-            page.locator("[data-test-id=\"compose-send-button\"]").click()
-
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            time.sleep(2)
 
             # # 보내기 성공 여부 확인
             # page.wait_for_selector("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요", timeout=3000)
@@ -330,17 +341,17 @@ def compare_ui_and_values(page, row_index, expected_counts):
 
 @pytest.mark.dependency(
   depends=[
-    "yahoo_login",
-    "yahoo_normal_mail",
-    "yahoo_pattern_mail",
-    "yahoo_keyword_mail",
-    "yahoo_attach_mail"
+    "dooray_login",
+    "dooray_normal_calendar",
+    "dooray_pattern_calendar",
+    "dooray_keyword_calendar",
+    "dooray_attach_calendar"
   ]
 )
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Yahoo mail Dlp Logging check")
-def test_compare_result_yahoo_mail():
+@allure.step("Dooray board Dlp Logging check")
+def test_compare_result_dooray_calendar():
     with sync_playwright() as p:
         # 브라우저 실행
         browser = p.chromium.launch(headless=True)
@@ -371,9 +382,9 @@ def test_compare_result_yahoo_mail():
             time.sleep(1)
             # 서비스 선택
             page.locator("#selectedDetail").select_option("service")
-            # 두레이게시판 선택
+            # 두레이 캘린더 선택
             page.locator("#tokenfield2-tokenfield").click()
-            page.get_by_text("[웹메일] 야후메일").click()
+            page.get_by_text("[SNS] 두레이 캘린더").click()
             # 검색 클릭
             page.get_by_role("button", name="검색").click()
             time.sleep(5)
@@ -396,11 +407,11 @@ def test_compare_result_yahoo_mail():
 
             # 실패 시 스크린샷 저장
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_yahoo_mail")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_calendar")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="yahoo_mail_failure_screenshot",
+            allure.attach.file(screenshot_path, name="dooray_board_failure_screenshot",
                                attachment_type=allure.attachment_type.JPG)
 
             raise

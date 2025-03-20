@@ -342,7 +342,7 @@ def test_compare_result_naverworks_board_comment():
             page.goto("https://172.16.150.187:8443/login")  # DLP 제품 URL
             page.fill("input[name='j_username']", "intsoosan")
             page.fill("input[name='j_password']", "dkswjswmd4071*")
-            page.get_by_role("button", name="LOGIN").click()
+            page.get_by_role("button", name="로그인").click()
             time.sleep(2)
 
             # 알림 팝업 처리

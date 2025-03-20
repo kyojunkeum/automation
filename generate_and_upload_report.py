@@ -16,7 +16,7 @@ def run_tests_and_generate_report():
         os.makedirs(results_dir, exist_ok=True)
 
         # 1. 테스트 반복 실행
-        for i in range(1, 2):
+        for i in range(1, 50):
             print(f"{i}번째 테스트를 실행합니다...")
             result_dir = f"{results_dir}/run_{i}"
             os.makedirs(result_dir, exist_ok=True)
@@ -24,7 +24,7 @@ def run_tests_and_generate_report():
 
         # 2. Allure 리포트 생성 및 병합
         print("Allure 리포트를 생성합니다...")
-        result_dirs = [f"{results_dir}/run_{i}" for i in range(1, 2)]
+        result_dirs = [f"{results_dir}/run_{i}" for i in range(1, 50)]
         generate_command = ["C:\\allure\\allure-2.32.0\\bin\\allure.bat", "generate", "--clean", "-o", "allure-report"]
         generate_command.extend(result_dirs)
 

@@ -49,12 +49,12 @@ def test_yahoo_login():
                 print("로그인 버튼이 존재하지 않습니다. 다음으로 넘어갑니다.")
 
             # 아이디 및 패스워드 입력
-            page.get_by_placeholder(" ").click()
-            page.get_by_placeholder(" ").fill("soosan_kjkeum")
+            page.get_by_role("textbox", name="사용자 이름, 이메일 또는 무선 기기").click()
+            page.get_by_role("textbox", name="사용자 이름, 이메일 또는 무선 기기").fill("soosan_kjkeum")
             page.get_by_role("button", name="다음").click()
             time.sleep(3)
-            page.get_by_placeholder(" ").click()
-            page.get_by_placeholder(" ").fill("iwilltakeyou01!")
+            page.get_by_role("textbox", name="비밀번호").click()
+            page.get_by_role("textbox", name="비밀번호").fill("iwilltakeyou01!")
             page.get_by_role("button", name="다음").click()
             time.sleep(3)
 
@@ -357,7 +357,7 @@ def test_compare_result_yahoo_mail():
             page.goto("https://172.16.150.187:8443/login")  # DLP 제품 URL
             page.fill("input[name='j_username']", "intsoosan")
             page.fill("input[name='j_password']", "dkswjswmd4071*")
-            page.get_by_role("button", name="LOGIN").click()
+            page.get_by_role("button", name="로그인").click()
             time.sleep(2)
 
             # 알림 팝업 처리

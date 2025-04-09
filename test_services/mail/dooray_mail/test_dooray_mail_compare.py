@@ -100,7 +100,8 @@ def test_dooray_normal_mail(request):
             time.sleep(2)
 
             # 수신자 입력
-            page1.get_by_test_id("MemberAutocompleteOption").first.click()
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill("soosan_kjkeum@nate.com")
             page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
             print("수신자 정보를 입력하였습니다.")
 
@@ -164,7 +165,8 @@ def test_dooray_pattern_mail(request):
             time.sleep(2)
 
             # 수신자 입력
-            page1.get_by_test_id("MemberAutocompleteOption").first.click()
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill("soosan_kjkeum@nate.com")
             page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
             print("수신자 정보를 입력하였습니다.")
 
@@ -228,7 +230,8 @@ def test_dooray_keyword_mail(request):
             time.sleep(2)
 
             # 수신자 입력
-            page1.get_by_test_id("MemberAutocompleteOption").first.click()
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill("soosan_kjkeum@nate.com")
             page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
             print("수신자 정보를 입력하였습니다.")
 
@@ -292,7 +295,8 @@ def test_dooray_attach_mail(request):
             time.sleep(2)
 
             # 수신자 입력
-            page1.get_by_test_id("MemberAutocompleteOption").first.click()
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill("soosan_kjkeum@nate.com")
             page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
             print("수신자 정보를 입력하였습니다.")
 

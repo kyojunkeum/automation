@@ -310,7 +310,10 @@ def test_dooray_attach_mail(request):
                 page1.get_by_test_id("MailWriteHeader_GhostButton").click()
 
             file_chooser = fc_info.value
-            file_chooser.set_files(r"D:/dlp_new_automation/test_files/pattern.docx")
+            file_chooser.set_files([r"D:/dlp_new_automation/test_files/pattern.docx",
+                                    r"D:/dlp_new_automation/test_files/keyword_test.docx",
+                                    r"D:/dlp_new_automation/test_files/request.txt",
+                                    r"D:dlp_new_automation/test_files/test.jpg"])
 
             print("파일을 첨부하였습니다.")
 

@@ -41,8 +41,8 @@ async def run_single_test(iteration_num):
     # ✅ 사용자 입력
     target_ip = "172.16.150.187"
     username = "root"
-    password = "qkfwjswmd187*"
-    reboot_port = 80
+    password = "dkswjswmd187*"
+    network_port = 80
     internet_url = "https://www.daum.net"
     daum_test_path = "D:/dlp_new_automation/test_services/mail/daum_mail/test_daum_mail_compare.py"
 
@@ -53,11 +53,11 @@ async def run_single_test(iteration_num):
         # ✅ 2. TCP Ping 재시도 (네트워크 복구 확인)
         host_ip = socket.gethostbyname('www.daum.net')
         for i in range(100):
-            if tcp_ping(host_ip, port=reboot_port):
+            if tcp_ping(host_ip, port=network_port):
                 print(f"[PASS] TCP 연결 성공 ({i + 1}회 시도)")
                 break
             else:
-                print(f"[INFO] TCP 연결 실패... 재시도 중 ({i + 1}/10)")
+                print(f"[INFO] TCP 연결 실패... 재시도 중 ({i + 1}/100)")
                 await asyncio.sleep(5)
         else:
             print("[FAIL] TCP 연결 실패. 네트워크 장애로 간주.")
@@ -113,4 +113,4 @@ async def repeat_test(n):
     print(f"실패: {total_fail}회")
 
 # ✅ 실행
-asyncio.run(repeat_test(2))  # ← 반복 횟수 설정
+asyncio.run(repeat_test(50))  # ← 반복 횟수 설정

@@ -143,5 +143,5 @@ async def repeat_test(n):
     print(f"실패: {total_fail}회")
 
 # 실행
-asyncio.run(repeat_test(20))
+asyncio.run(repeat_test(1))
 

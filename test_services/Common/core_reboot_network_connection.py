@@ -48,19 +48,33 @@ async def run_test():
         page = await context.new_page()
 
         # ✅ 사용자 입력: 제품 웹 UI 주소
-        await page.goto("https://172.16.150.187:8443/login")  # 예: http://192.168.0.1/admin
+        await page.goto("https://172.16.150.188:8443/login")  # 예: http://192.168.0.1/admin
 
         # ✅ 사용자 입력: 로그인 입력 필드 및 로그인 동작
         await page.fill("input[name='j_username']", "intsoosan")
         await page.fill("input[name='j_password']", "dkswjswmd4071*")
-        await page.get_by_role("button", name="로그인").click()
+        # await page.get_by_role("button", name="로그인").click()
+
+        try:
+            # "로그인" 또는 "Login" 텍스트를 가진 버튼 중 하나 클릭 시도
+            login_button = page.locator("button:has-text('로그인'), button:has-text('Login')")
+            await login_button.first.click()
+            print("[INFO] 로그인 버튼 클릭 성공")
+        except Exception as e:
+            print("[ERROR] 로그인 버튼 클릭 실패:", e)
+            await page.screenshot(path="login_click_failed.png")
+            content = await page.content()
+            with open("login_page_debug.html", "w", encoding="utf-8") as f:
+                f.write(content)
+            raise
+        # await click_confirm_if_popup_exists(page)
 
         # 페이지 로딩 대기
         # 알림 팝업 처리
         await click_confirm_if_popup_exists(page, timeout=5000)
 
         # ✅ 사용자 입력: 특정 버튼 클릭 페이지로 이동
-        await page.goto("https://172.16.150.187:8443/system/serversetting")  # 재기동 페이지 이동
+        await page.goto("https://172.16.150.188:8443/system/serversetting")  # 재기동 페이지 이동
 
         # ✅ 사용자 입력: SW 재기동 버튼 클릭
         await page.get_by_role("button", name="코어 재기동").click()
@@ -85,7 +99,7 @@ async def run_test():
                 await asyncio.sleep(5)
         else:
             print("[FAIL] TCP 연결 실패. 네트워크 장애로 간주.")
-            return
+            return "FAIL"
 
         await browser.close()
 
@@ -128,8 +142,8 @@ async def repeat_test(n):
     for k in range(n):
         print(f"\n========== [테스트 반복 {k+1}/{n}] ==========")
         try:
-            await run_test()
-            results.append((k+1, "PASS"))
+            result = await run_test()
+            results.append((k+1, result))
         except Exception as e:
             print(f"[ERROR] 테스트 {k+1} 실패 : {e}")
             results.append((k+1, "FAIL"))
@@ -149,5 +163,5 @@ async def repeat_test(n):
     print(f"실패: {total_fail}회")
 
 # 실행
-asyncio.run(repeat_test(1))
+asyncio.run(repeat_test(20))
 

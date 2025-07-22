@@ -39,9 +39,9 @@ async def run_single_test(iteration_num):
     print(f"\n========== [테스트 반복 {iteration_num}] 시작 ==========")
 
     # ✅ 사용자 입력
-    target_ip = "172.16.150.187"
+    target_ip = "172.16.150.188"
     username = "root"
-    password = "dkswjswmd187*"
+    password = "dkswjswmd188*"
     network_port = 80
     internet_url = "https://www.daum.net"
     daum_test_path = "D:/dlp_new_automation/test_services/mail/daum_mail/test_daum_mail_compare.py"

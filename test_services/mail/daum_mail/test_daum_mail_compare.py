@@ -303,10 +303,17 @@ def compare_ui_and_values(page, row_index, expected_counts):
     :param row_index: 비교할 행 번호 (1부터 시작)
     :param expected_counts: 딕셔너리 형태의 기대 값
     """
+    # # V9
+    # row_selector = f"table tr:nth-child({row_index})"
+    # ui_pattern_count = page.locator(f"{row_selector} td:nth-child(10)").text_content().strip()
+    # ui_keyword_count = page.locator(f"{row_selector} td:nth-child(11)").text_content().strip()
+    # ui_file_count = page.locator(f"{row_selector} td:nth-child(12)").text_content().strip()
+
+    # V10
     row_selector = f"table tr:nth-child({row_index})"
-    ui_pattern_count = page.locator(f"{row_selector} td:nth-child(10)").text_content().strip()
-    ui_keyword_count = page.locator(f"{row_selector} td:nth-child(11)").text_content().strip()
-    ui_file_count = page.locator(f"{row_selector} td:nth-child(12)").text_content().strip()
+    ui_pattern_count = page.locator(f"{row_selector} td:nth-child(11)").text_content().strip()
+    ui_keyword_count = page.locator(f"{row_selector} td:nth-child(12)").text_content().strip()
+    ui_file_count = page.locator(f"{row_selector} td:nth-child(13)").text_content().strip()
 
     assert expected_counts["pattern_count"] == ui_pattern_count, \
         f"패턴 검출수 불일치: 기대값({expected_counts['pattern_count']}) != UI({ui_pattern_count})"
@@ -341,17 +348,29 @@ def test_compare_result_daum_mail():
         try:
 
             # DLP 서비스 로그인
-            page.goto("https://172.16.150.187:8443/login")  # DLP 제품 URL
+            page.goto("https://172.16.150.188:8443/login")  # DLP 제품 URL
             page.fill("input[name='j_username']", "intsoosan")
             page.fill("input[name='j_password']", "dkswjswmd4071*")
-            page.get_by_role("button", name="로그인").click()
+            # page.get_by_role("button", name="로그인").click()
+            try:
+                # "로그인" 또는 "Login" 텍스트를 가진 버튼 중 하나 클릭 시도
+                login_button = page.locator("button:has-text('로그인'), button:has-text('Login')")
+                login_button.first.click()
+                print("[INFO] 로그인 버튼 클릭 성공")
+            except Exception as e:
+                print("[ERROR] 로그인 버튼 클릭 실패:", e)
+                page.screenshot(path="login_click_failed.png")
+                content = page.content()
+                with open("login_page_debug.html", "w", encoding="utf-8") as f:
+                    f.write(content)
+                raise
             time.sleep(2)
 
             # 알림 팝업 처리
             click_confirm_if_popup_exists(page, timeout=5000)
 
             # 서비스 로그 페이지로 이동
-            page.goto("https://172.16.150.187:8443/log/service")
+            page.goto("https://172.16.150.188:8443/log/service")
 
             # 상세 검색
             page.get_by_role("link", name="상세검색").click()
@@ -367,9 +386,9 @@ def test_compare_result_daum_mail():
 
             # 딕셔너리 기댓값과 UI 데이터를 비교
             test_cases = [
-                {"row_index": 7, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"}},  # 일반 로깅
-                {"row_index": 5, "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"}},  # 개인정보 로깅
-                {"row_index": 3, "expected": {"pattern_count": "0", "keyword_count": "2", "file_count": "0"}},  # 키워드 로깅
+                {"row_index": 4, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"}},  # 일반 로깅
+                {"row_index": 3, "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"}},  # 개인정보 로깅
+                {"row_index": 2, "expected": {"pattern_count": "0", "keyword_count": "2", "file_count": "0"}},  # 키워드 로깅
                 {"row_index": 1, "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "1"}},  # 첨부파일 로깅
             ]
 

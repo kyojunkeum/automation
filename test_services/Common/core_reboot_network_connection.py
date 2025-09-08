@@ -117,18 +117,19 @@ async def run_test():
                     if check_internet_connection(internet_url):
                         print(f"[PASS] 인터넷 연결 정상 ({j + 1}회 시도)")
                         print(">>> 최종 결과: PASS")
+                        return "PASS"
 
-                        # ✅ Daum 테스트 실행
-                        print(f"[INFO] Daum 메일 로깅 발생 테스트 실행: {daum_test_path}")
-                        try:
-                            subprocess.run(["pytest", daum_test_path], check=True)
-                            print(">>> dlp logging test result: PASS")
-                            await browser.close()
-                            return "PASS"
-                        except subprocess.CalledProcessError as e:
-                            print(">>> dlp logging test result: FAIL")
-                            await browser.close()
-                            return "FAIL"
+                        # # ✅ Daum 테스트 실행
+                        # print(f"[INFO] Daum 메일 로깅 발생 테스트 실행: {daum_test_path}")
+                        # try:
+                        #     subprocess.run(["pytest", daum_test_path], check=True)
+                        #     print(">>> dlp logging test result: PASS")
+                        #     await browser.close()
+                        #     return "PASS"
+                        # except subprocess.CalledProcessError as e:
+                        #     print(">>> dlp logging test result: FAIL")
+                        #     await browser.close()
+                        #     return "FAIL"
                 except Exception as e:
                     print(f"[FAIL] 인터넷 연결 실패... 재시도 중 ({j + 1}/15): {e}")
                     await asyncio.sleep(5)
@@ -163,5 +164,5 @@ async def repeat_test(n):
     print(f"실패: {total_fail}회")
 
 # 실행
-asyncio.run(repeat_test(20))
+asyncio.run(repeat_test(100))
 

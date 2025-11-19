@@ -1,25 +1,39 @@
 import sys
 import os
 import gzip
+import shutil
 import time
 import socket
 import threading
-import queue
+import random
 import traceback
+import math
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import matplotlib
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Iterable, Union
+from typing import Dict, List, Optional, Tuple, Iterable
+from datetime import datetime
+from collections import deque
 
-# ---------- GUI (PySide6) ----------
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtGui import QPalette, QColor
 from PySide6.QtWidgets import (
     QApplication, QWidget, QGridLayout, QLabel, QLineEdit, QPushButton,
-    QTextEdit, QFileDialog, QComboBox, QSpinBox, QCheckBox, QHBoxLayout,
-    QVBoxLayout, QGroupBox, QRadioButton, QPlainTextEdit
+    QTextEdit, QFileDialog, QComboBox, QSpinBox, QCheckBox,
+    QGroupBox, QRadioButton, QPlainTextEdit, QListWidget, QHBoxLayout,
+    QVBoxLayout, QScrollArea, QTableWidget, QTableWidgetItem,
+    QMessageBox,
 )
 
-# ------------------ Core HTTP Builder ------------------
-
 CRLF = b"\r\n"
+
+# ---- 한글 폰트 설정 (Windows 기준: 맑은 고딕) ----
+plt.rcParams["font.family"] = "Malgun Gothic"   # 윈도우 기본 한글폰트
+plt.rcParams["axes.unicode_minus"] = False      # 마이너스 깨짐 방지
+
+
+# ------------------ Core HTTP ------------------
 
 @dataclass
 class ClientOptions:
@@ -30,52 +44,47 @@ class ClientOptions:
     keep_alive: bool
     use_chunked: bool
     chunk_size: int
-    chunk_ext: str  # e.g. foo=bar
+    chunk_ext: str
     use_gzip: bool
     use_multipart: bool
     extra_headers: Dict[str, str]
     trailing_headers: Dict[str, str]
     connect_timeout: float = 5.0
     read_timeout: float = 5.0
-    fire_and_go: bool = True  # send and do minimal read
-    http_version: str = "HTTP/1.1"  # fixed
-    # Body mode
+    fire_and_go: bool = True
+    http_version: str = "HTTP/1.1"
     body_text: Optional[bytes] = None
     file_path: Optional[str] = None
-    # Multipart fields
     multipart_field_name: str = "file"
     multipart_text_fields: Dict[str, str] = field(default_factory=dict)
     multipart_filename_override: Optional[str] = None
+    add_x_filename_header: bool = True  # non-multipart 파일명 힌트
+    delay_between: float = 0.0          # 전송 간 대기(초)
 
 
-def parse_header_lines(raw: str) -> Dict[str, str]:
-    headers: Dict[str, str] = {}
+def parse_kv_lines(raw: str) -> Dict[str, str]:
+    d: Dict[str, str] = {}
     for line in raw.splitlines():
         line = line.strip()
-        if not line:
+        if not line or ":" not in line:
             continue
-        if ":" in line:
-            k, v = line.split(":", 1)
-            headers[k.strip()] = v.strip()
-    return headers
+        k, v = line.split(":", 1)
+        d[k.strip()] = v.strip()
+    return d
 
 
-def build_request_headers_firstline(opts: ClientOptions, host_header: Optional[str] = None) -> bytearray:
+def build_request_line_and_base_headers(opts: ClientOptions, host_header: Optional[str] = None) -> bytearray:
     first = f"{opts.method} {opts.path} {opts.http_version}".encode("ascii")
     buf = bytearray(first + CRLF)
     host_val = host_header if host_header else f"{opts.host}:{opts.port}"
     buf += f"Host: {host_val}".encode("ascii") + CRLF
-    # keep-alive
     buf += (b"Connection: keep-alive" if opts.keep_alive else b"Connection: close") + CRLF
-    # add extra headers later (caller)
     return buf
 
 
 def add_header_lines(buf: bytearray, headers: Dict[str, str]):
     for k, v in headers.items():
-        # ensure ascii-safe
-        line = f"{k}: {v}".encode("utf-8")
-        buf += line + CRLF
+        buf += f"{k}: {v}".encode("utf-8") + CRLF
 
 
 def gzip_bytes(data: bytes) -> bytes:
@@ -98,15 +107,16 @@ def multipart_iter(
     filename_override: Optional[str],
     field_name: str,
 ) -> Iterable[bytes]:
-    # text fields
+    # 텍스트 필드
     for k, v in text_fields.items():
         yield f"--{boundary}\r\n".encode()
         yield f'Content-Disposition: form-data; name="{k}"\r\n\r\n'.encode()
         yield v.encode("utf-8")
         yield CRLF
-    # file
+
+    # 파일 파트
     file_path, mime, stream_iter = filespec
-    filename = filename_override or os.path.basename(file_path)
+    filename = filename_override or (os.path.basename(file_path) if file_path else "blob")
     mime = mime or "application/octet-stream"
     yield f"--{boundary}\r\n".encode()
     yield f'Content-Disposition: form-data; name="{field_name}"; filename="{filename}"\r\n'.encode()
@@ -114,29 +124,14 @@ def multipart_iter(
     for chunk in stream_iter:
         yield chunk
     yield CRLF
-    # closing boundary
+
+    # 종료
     yield f"--{boundary}--\r\n".encode()
 
 
-def calc_iter_length(it: Iterable[bytes]) -> int:
-    total = 0
-    for part in it:
-        total += len(part)
-    return total
-
-
-def clone_iter(it: Iterable[bytes]) -> List[bytes]:
-    data = []
-    for part in it:
-        data.append(part)
-    return data
-
-
-def encode_headers_for_trailer_decl(trailers: Dict[str, str]) -> Optional[str]:
+def trailer_decl_str(trailers: Dict[str, str]) -> Optional[str]:
     if not trailers:
         return None
-    # Trailer header lists the field-names that will appear in the trailer section
-    # e.g. Trailer: Foo, Bar
     return ", ".join(trailers.keys())
 
 
@@ -144,11 +139,21 @@ class HttpConnection:
     def __init__(self, opts: ClientOptions):
         self.opts = opts
         self.sock: Optional[socket.socket] = None
+        self.last_status: Optional[int] = None
+        self.last_reason: Optional[str] = None
+        self.last_raw_response: Optional[bytes] = None
 
     def connect(self):
-        s = socket.create_connection((self.opts.host, self.opts.port), timeout=self.opts.connect_timeout)
-        s.settimeout(self.opts.read_timeout)
-        self.sock = s
+        # 이미 연결되어 있으면 재사용
+        if self.sock is not None:
+            return
+        self.sock = socket.create_connection((self.opts.host, self.opts.port), timeout=self.opts.connect_timeout)
+        self.sock.settimeout(self.opts.read_timeout)
+        # 전송 성능 향상을 위한 소켓 버퍼 설정 (실패해도 무시)
+        try:
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1_048_576)  # 1MB
+        except Exception:
+            pass
 
     def close(self):
         try:
@@ -157,396 +162,1046 @@ class HttpConnection:
         finally:
             self.sock = None
 
-    # Minimal response read: read headers only (or small chunk) then return.
     def _minimal_read_response(self):
+        """
+        서버에서 오는 HTTP 응답의 맨 앞 부분만 읽어서
+        상태코드와 이유문구를 파싱한다.
+        실패하면 None 반환.
+        """
         try:
             if not self.sock:
-                return
-            self.sock.settimeout(0.3)
+                return None
+            self.sock.settimeout(1.0)
             data = b""
-            # read until header end or timeout
-            while b"\r\n\r\n" not in data and len(data) < 65536:
+            # 헤더부(최소 첫 라인 + 몇 줄) 정도만 최대 8KB 읽기
+            while b"\r\n\r\n" not in data and len(data) < 8192:
                 chunk = self.sock.recv(4096)
                 if not chunk:
                     break
                 data += chunk
-        except Exception:
-            pass
 
-    def send_request_content_length(self, body_iter: Iterable[bytes], declared_len: int, is_trailer: bool = False):
-        # Build initial headers
-        buf = build_request_headers_firstline(self.opts)
-        # gzip?
+            if not data:
+                return None
+
+            self.last_raw_response = data
+
+            # 첫 줄 파싱: HTTP/1.1 200 OK
+            first_line, *_ = data.split(b"\r\n", 1)
+            parts = first_line.split()
+            if len(parts) < 2:
+                return None
+
+            # parts[1] 이 상태코드
+            try:
+                status = int(parts[1])
+            except ValueError:
+                return None
+
+            reason = b" ".join(parts[2:]).decode("ascii", "ignore") if len(parts) > 2 else ""
+            self.last_status = status
+            self.last_reason = reason
+            return status, reason
+        except Exception:
+            return None
+
+    def send_request_content_length(self, body_iter: Iterable[bytes], declared_len: int, filename_for_header: Optional[str]):
+        buf = build_request_line_and_base_headers(self.opts)
         if self.opts.use_gzip:
             buf += b"Content-Encoding: gzip\r\n"
-        # content-length
         buf += f"Content-Length: {declared_len}".encode("ascii") + CRLF
-        # trailers not allowed with Content-Length body (HTTP/1.1 allows trailers with chunked only)
-        trailer_decl = encode_headers_for_trailer_decl(self.opts.trailing_headers)
-        if trailer_decl:
-            # Spec-wise, trailers apply with chunked; warn by adding custom header
+        # 비멀티파트 파일 전송 시, 서버가 파일명을 알 수 있도록 헤더 보강
+        if filename_for_header and self.opts.add_x_filename_header and "X-Filename" not in self.opts.extra_headers:
+            buf += f"X-Filename: {filename_for_header}".encode("utf-8") + CRLF
+        if trailer_decl_str(self.opts.trailing_headers):
             buf += b"X-Warning: Trailer headers require chunked encoding\r\n"
-
-        # extra headers
         add_header_lines(buf, self.opts.extra_headers)
         buf += CRLF
-
-        # send headers
+        assert self.sock
         self.sock.sendall(buf)
-        # send body
         for part in body_iter:
             self.sock.sendall(part)
 
         if self.opts.fire_and_go:
-            self._minimal_read_response()
+            return self._minimal_read_response()
+        return None
 
-    def send_request_chunked(self, body_iter: Iterable[bytes]):
-        buf = build_request_headers_firstline(self.opts)
-        # Transfer-Encoding: chunked
+    def send_request_chunked(self, body_iter: Iterable[bytes], filename_for_header: Optional[str]):
+        buf = build_request_line_and_base_headers(self.opts)
         buf += b"Transfer-Encoding: chunked\r\n"
-        # gzip?
         if self.opts.use_gzip:
             buf += b"Content-Encoding: gzip\r\n"
-        # Declare trailers (so we can send trailing headers after 0-chunk)
-        trailer_decl = encode_headers_for_trailer_decl(self.opts.trailing_headers)
-        if trailer_decl:
-            buf += f"Trailer: {trailer_decl}".encode("ascii") + CRLF
-        # extra headers
+        # 파일명 보강
+        if filename_for_header and self.opts.add_x_filename_header and "X-Filename" not in self.opts.extra_headers:
+            buf += f"X-Filename: {filename_for_header}".encode("utf-8") + CRLF
+        tdecl = trailer_decl_str(self.opts.trailing_headers)
+        if tdecl:
+            buf += f"Trailer: {tdecl}".encode("ascii") + CRLF
         add_header_lines(buf, self.opts.extra_headers)
         buf += CRLF
+        assert self.sock
         self.sock.sendall(buf)
 
         ext = ""
-        if self.opts.chunk_ext.strip():
-            # e.g. ;foo=bar or ;foo
-            ce = self.opts.chunk_ext.strip()
+        ce = self.opts.chunk_ext.strip()
+        if ce:
             if not ce.startswith(";"):
                 ce = ";" + ce
             ext = ce
 
-        # send chunks
         for part in body_iter:
             if not part:
                 continue
-            size = f"{len(part):X}".encode("ascii")
-            self.sock.sendall(size + ext.encode("ascii") + CRLF + part + CRLF)
+            size_hex = f"{len(part):X}".encode("ascii")
+            self.sock.sendall(size_hex + ext.encode("ascii") + CRLF + part + CRLF)
 
-        # terminating 0-chunk
         self.sock.sendall(b"0" + ext.encode("ascii") + CRLF)
-
-        # Trailing headers (if any)
         for k, v in self.opts.trailing_headers.items():
-            line = f"{k}: {v}".encode("utf-8")
-            self.sock.sendall(line + CRLF)
-        # end of message
+            self.sock.sendall(f"{k}: {v}".encode("utf-8") + CRLF)
         self.sock.sendall(CRLF)
 
         if self.opts.fire_and_go:
-            self._minimal_read_response()
+            return self._minimal_read_response()
+        return None
 
     def perform(self):
-        # Prepare body iterator according to options
+        filename_hint = os.path.basename(self.opts.file_path) if self.opts.file_path else None
+
+        # multipart
         if self.opts.use_multipart:
-            # multipart form-data stream
             boundary = f"----PyBlastBoundary{int(time.time()*1000)}"
-            filespec = (
-                self.opts.file_path or "",
-                None,
-                iter_file_chunks(self.opts.file_path, self.opts.chunk_size) if self.opts.file_path else [self.opts.body_text or b""],
-            )
-            body_gen = multipart_iter(
+            file_iter = iter_file_chunks(self.opts.file_path, self.opts.chunk_size) if self.opts.file_path else [self.opts.body_text or b""]
+            filespec = (self.opts.file_path or "", None, file_iter)
+            body_stream = multipart_iter(
                 filespec, boundary, self.opts.multipart_text_fields,
                 self.opts.multipart_filename_override, self.opts.multipart_field_name
             )
+            self.opts.extra_headers.setdefault("Content-Type", f"multipart/form-data; boundary={boundary}")
 
-            # possible gzip
             if self.opts.use_gzip:
-                # For Content-Length mode we must buffer to know length; for chunked we can stream-compress
+                data = b"".join(body_stream)
+                gz = gzip_bytes(data)
                 if self.opts.use_chunked:
-                    # stream+gzip: simple approach -> buffer (for simplicity & robustness here)
-                    data = b"".join(body_gen)
-                    gz = gzip_bytes(data)
-                    body_iter = [gz]
-                    declared_len = len(gz)
-                    # Although we chose chunked, we can still send single big chunk(s)
-                    if self.opts.use_chunked:
-                        self.send_request_chunked(body_iter)
-                        return
+                    return self.send_request_chunked([gz], filename_hint)
                 else:
-                    data = b"".join(body_gen)
-                    gz = gzip_bytes(data)
-                    self.send_request_content_length([gz], len(gz))
-                    return
+                    return self.send_request_content_length([gz], len(gz), filename_hint)
             else:
                 if self.opts.use_chunked:
-                    self.send_request_chunked(body_gen)
-                    return
+                    return self.send_request_chunked(body_stream, filename_hint)
                 else:
-                    # Need content-length -> buffer
-                    parts = clone_iter(body_gen)
+                    parts = [p for p in body_stream]
                     total = sum(len(p) for p in parts)
-                    self.send_request_content_length(parts, total)
-                    return
+                    return self.send_request_content_length(parts, total, filename_hint)
 
-            return
-
-        # Non-multipart (raw text or single file)
+        # non-multipart (raw file)
         if self.opts.file_path:
-            if self.opts.use_gzip and not self.opts.use_chunked:
-                # need known length -> gzip whole file
-                with open(self.opts.file_path, "rb") as f:
-                    gz = gzip_bytes(f.read())
-                self.send_request_content_length([gz], len(gz))
-                return
-
             if self.opts.use_chunked:
-                # optional gzip: for simplicity, if gzip+chunked, gzip whole file first (memory ok for demo)
                 if self.opts.use_gzip:
                     with open(self.opts.file_path, "rb") as f:
                         gz = gzip_bytes(f.read())
-                    self.send_request_chunked([gz])
+                    return self.send_request_chunked([gz], filename_hint)
                 else:
-                    self.send_request_chunked(iter_file_chunks(self.opts.file_path, self.opts.chunk_size))
+                    return self.send_request_chunked(iter_file_chunks(self.opts.file_path, self.opts.chunk_size),
+                                                     filename_hint)
             else:
-                # content-length
-                file_size = os.path.getsize(self.opts.file_path)
                 if self.opts.use_gzip:
-                    # handled above
-                    pass
-                self.send_request_content_length(iter_file_chunks(self.opts.file_path, 8192), file_size)
-            return
+                    with open(self.opts.file_path, "rb") as f:
+                        gz = gzip_bytes(f.read())
+                    return self.send_request_content_length([gz], len(gz), filename_hint)
 
-        # Text body
+                else:
+                    fsize = os.path.getsize(self.opts.file_path)
+                    return self.send_request_content_length(iter_file_chunks(self.opts.file_path, 8192), fsize,
+                                                            filename_hint)
+
+        # text body
         body = self.opts.body_text or b""
         if self.opts.use_gzip:
             body = gzip_bytes(body)
-
         if self.opts.use_chunked:
-            self.send_request_chunked([body])
+            return self.send_request_chunked([body], None)
         else:
-            self.send_request_content_length([body], len(body))
+            return self.send_request_content_length([body], len(body), None)
 
 
-# ------------------ Worker / Dispatcher ------------------
+# ------------------ Worker ------------------
 
 class SenderWorker(threading.Thread):
-    def __init__(self, idx: int, job_q: queue.Queue, log_cb, base_opts: ClientOptions, repeat: int):
+    def __init__(
+        self,
+        idx: int,
+        all_items: List,
+        log_cb,
+        status_cb,
+        stats_cb,
+        base_opts: ClientOptions,
+        repeat: int,
+        stop_flag: threading.Event,
+        random_mode: bool,
+        log_every: int,
+    ):
         super().__init__(daemon=True)
         self.idx = idx
-        self.job_q = job_q
+        self.all_items = all_items
         self.log = log_cb
+        self.status_cb = status_cb
+        self.stats_cb = stats_cb
         self.base_opts = base_opts
-        self.repeat = repeat
-        self.stop_flag = False
+        self.repeat = repeat          # 0이면 무한
+        self.stop_flag = stop_flag
+        self.random_mode = random_mode
+        self.log_every = max(1, log_every)
+        self.sent_count = 0
+
+        # keep-alive 연결 재사용용
+        self.conn: Optional[HttpConnection] = None
+
+    def _get_or_create_connection(self, opts: ClientOptions) -> HttpConnection:
+        """
+        keep-alive 가 켜진 경우에는 기존 연결을 재사용하고,
+        아니면 매 요청마다 새 HttpConnection을 사용한다.
+        """
+        # keep-alive가 아니면 매번 새로 생성
+        if not opts.keep_alive:
+            conn = HttpConnection(opts)
+            conn.connect()
+            return conn
+
+        # keep-alive 인 경우: 기존 연결이 살아있으면 재사용
+        if self.conn is not None and self.conn.sock is not None:
+            self.conn.opts = opts
+            return self.conn
+
+        # 기존 연결이 없으면 새로 만들고 기억
+        self.conn = HttpConnection(opts)
+        self.conn.connect()
+        return self.conn
 
     def run(self):
         try:
-            while not self.stop_flag:
-                item = None
-                try:
-                    item = self.job_q.get(timeout=0.3)
-                except queue.Empty:
-                    break
+            cycle = 0
+            while not self.stop_flag.is_set() and (self.repeat == 0 or cycle < self.repeat):
+                cycle += 1
+                items = list(self.all_items)
+                if self.random_mode:
+                    random.shuffle(items)
 
-                file_path_or_text = item
-                try:
-                    for r in range(self.repeat):
-                        opts = self.clone_opts_for_item(file_path_or_text)
-                        conn = HttpConnection(opts)
-                        if not opts.keep_alive:
-                            # one-shot
-                            conn.connect()
-                            conn.perform()
-                            conn.close()
+                for item in items:
+                    if self.stop_flag.is_set():
+                        break
+
+                    desc = self._desc(item)
+                    self.status_cb(self.idx, desc)
+
+                    # 이 요청에서 보낼(예상) 바이트 수
+                    est_bytes = self._estimate_bytes(item)
+
+                    try:
+                        opts = self._clone_opts_for_item(item)
+
+                        # 연결 재사용 / 생성
+                        conn = self._get_or_create_connection(opts)
+
+                        # 요청 시작 시각
+                        t0 = time.monotonic()
+                        resp = None
+                        elapsed_ms = None
+
+                        try:
+                            resp = conn.perform()
+                            elapsed_ms = (time.monotonic() - t0) * 1000.0
+                        except (TimeoutError, socket.timeout):
+                            self.sent_count += 1
+                            msg = (
+                                f"[TIMEOUT] [스레드 {self.idx}] 전송 실패: Timeout — {desc} "
+                                f"(DUT/서버 응답 없음, 차단 가능성 높음)"
+                            )
+                            self.log(msg)
+
+                            # 그래프/통계용 기록 (status_code = None, elapsed_ms=None)
+                            if self.stats_cb:
+                                self.stats_cb(est_bytes, None, None)
+
+                            # keep-alive 연결이면 재연결 준비
+                            if opts.keep_alive and self.conn is not None:
+                                self.conn.close()
+                                self.conn = None
+                            elif not opts.keep_alive:
+                                conn.close()
+                            continue
+                        except (ConnectionResetError, BrokenPipeError, OSError) as e:
+                            self.sent_count += 1
+                            msg = (
+                                f"[RESET] [스레드 {self.idx}] 전송 실패: Connection error({e}) — {desc} "
+                                f"(전송 중 DUT/서버가 연결을 끊었거나 네트워크 오류)"
+                            )
+                            self.log(msg)
+
+                            if self.stats_cb:
+                                self.stats_cb(est_bytes, None, None)
+
+                            if opts.keep_alive and self.conn is not None:
+                                self.conn.close()
+                                self.conn = None
+                            elif not opts.keep_alive:
+                                conn.close()
+                            continue
+                        # 여기까지 왔으면 소켓 예외는 없음
+                        self.sent_count += 1
+
+                        status_str = "응답 없음"
+                        verdict = "알 수 없음"
+                        tag = "[INFO]"
+                        status_code = None
+
+                        if resp is None:
+                            verdict = "차단 의심(응답 없음/짧은 응답)"
+                            tag = "[BLOCK]"
                         else:
-                            # try to reuse connection for repeat (basic)
-                            conn.connect()
-                            try:
-                                conn.perform()
-                            finally:
-                                if not opts.keep_alive:
-                                    conn.close()
-                                else:
-                                    # simple policy: close anyway after one perform to avoid pipeline tangles
-                                    conn.close()
-                        self.log(f"[T{self.idx}] sent ({r+1}/{self.repeat}): {self.describe_item(file_path_or_text)}")
-                finally:
-                    self.job_q.task_done()
-        except Exception as e:
-            self.log(f"[T{self.idx}] ERROR: {e}\n{traceback.format_exc()}")
+                            status, reason = resp
+                            status_code = status
+                            status_str = f"{status} {reason}"
+                            if 200 <= status < 300:
+                                verdict = "성공"
+                                tag = "[SUCCESS]"
+                            elif 400 <= status < 500:
+                                verdict = "차단/클라이언트 오류"
+                                tag = "[BLOCK]"
+                            elif 500 <= status < 600:
+                                verdict = "서버 오류(또는 DUT 차단)"
+                                tag = "[SERVER_ERR]"
+                            else:
+                                verdict = "기타 응답"
+                                tag = "[INFO]"
 
-    def clone_opts_for_item(self, file_path_or_text) -> ClientOptions:
+                        # ---- 그래프/통계용 콜백 호출 ----
+                        if self.stats_cb:
+                            self.stats_cb(est_bytes, status_code, elapsed_ms)
+
+                        # 성공 로그는 log_every 간격으로, 나머지는 항상
+                        if tag != "[SUCCESS]" or (self.sent_count % self.log_every == 0):
+                            msg = (
+                                f"{tag} [스레드 {self.idx}] 전송 결과 "
+                                f"(#{self.sent_count}, 반복={cycle if self.repeat>0 else '∞'}): "
+                                f"{desc} — {verdict} (응답={status_str})"
+                            )
+                            self.log(msg)
+
+                        if self.base_opts.delay_between > 0:
+                            time.sleep(self.base_opts.delay_between)
+
+                        # keep-alive가 꺼져 있는 경우, 이 요청 전용 conn은 여기서 정리
+                        if not opts.keep_alive:
+                            conn.close()
+
+                    except Exception as e:
+                        self.log(f"[ERROR] [스레드 {self.idx}] 전송 중 예외: {e}\n{traceback.format_exc()}")
+
+            # 스레드 작업 종료 표시
+            self.status_cb(self.idx, "-")
+
+            # 스레드 종료 시, 재사용 중이던 연결이 있으면 정리
+            if self.conn is not None:
+                self.conn.close()
+                self.conn = None
+
+        except Exception as e:
+            self.log(f"[FATAL] [스레드 {self.idx}] 치명 오류: {e}\n{traceback.format_exc()}")
+
+    def _clone_opts_for_item(self, item) -> ClientOptions:
         o = self.base_opts
         new = ClientOptions(
             host=o.host, port=o.port, path=o.path, method=o.method, keep_alive=o.keep_alive,
-            use_chunked=o.use_chunked, chunk_size=o.chunk_size, chunk_ext=o.chunk_ext, use_gzip=o.use_gzip,
-            use_multipart=o.use_multipart, extra_headers=dict(o.extra_headers),
-            trailing_headers=dict(o.trailing_headers),
-            connect_timeout=o.connect_timeout, read_timeout=o.read_timeout, fire_and_go=o.fire_and_go,
-            http_version=o.http_version, body_text=o.body_text, file_path=o.file_path,
+            use_chunked=o.use_chunked, chunk_size=o.chunk_size, chunk_ext=o.chunk_ext,
+            use_gzip=o.use_gzip, use_multipart=o.use_multipart,
+            extra_headers=dict(o.extra_headers), trailing_headers=dict(o.trailing_headers),
+            connect_timeout=o.connect_timeout, read_timeout=o.read_timeout,
+            fire_and_go=o.fire_and_go, http_version=o.http_version,
+            body_text=o.body_text, file_path=o.file_path,
             multipart_field_name=o.multipart_field_name,
             multipart_text_fields=dict(o.multipart_text_fields),
             multipart_filename_override=o.multipart_filename_override,
+            add_x_filename_header=o.add_x_filename_header,
+            delay_between=o.delay_between,
         )
-        if isinstance(file_path_or_text, tuple) and file_path_or_text[0] == "__TEXT__":
+        if isinstance(item, tuple) and item[0] == "__TEXT__":  # 텍스트
             new.file_path = None
-            new.body_text = file_path_or_text[1].encode("utf-8")
+            new.body_text = item[1].encode("utf-8")
         else:
-            new.file_path = file_path_or_text if file_path_or_text else None
-            if not new.file_path:
-                new.body_text = o.body_text
+            new.file_path = item if item else None
         return new
 
-    def describe_item(self, f):
-        if isinstance(f, tuple) and f[0] == "__TEXT__":
-            return f"text({len(f[1])} chars)"
-        elif f:
-            return os.path.basename(f)
-        return "empty-body"
+    def _desc(self, item):
+        if isinstance(item, tuple) and item[0] == "__TEXT__":
+            return f"텍스트({len(item[1])}자)"
+        elif item:
+            return os.path.basename(item)
+        return "빈 바디"
+
+    def _estimate_bytes(self, item) -> int:
+        """
+        대략적인 전송 바디 크기 추정.
+        - 텍스트: UTF-8 바이트 길이
+        - 파일: 파일 크기
+        """
+        try:
+            if isinstance(item, tuple) and item[0] == "__TEXT__":
+                return len(item[1].encode("utf-8"))
+            elif isinstance(item, str) and item:
+                return os.path.getsize(item)
+        except Exception:
+            pass
+        return 0
 
 
 # ------------------ GUI ------------------
 
 class UploaderGUI(QWidget):
-    log_signal = Signal(str)
-    done_signal = Signal()
+    status_signal = Signal(int, str)  # (thread_idx, desc)
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("HTTP Blast Uploader (GUI)")
-        self.resize(1000, 720)
+        self.setWindowTitle("HTTP Uploader")
+        self.resize(1200, 900)
+
+        # ★ 로그 기본 경로 설정 (UI에서 사용해야 하므로 가장 먼저)
+        self.log_dir = os.path.join(os.getcwd(), "logs")
+        os.makedirs(self.log_dir, exist_ok=True)
+
+        self._apply_dark_theme()
         self._build_ui()
-        self.log_signal.connect(self._append_log)
+
+        # 로그 버퍼(A) - 화면용
+        self._log_buf = deque()
+        self._log_lock = threading.Lock()
+        self._log_timer = QTimer(self)
+        self._log_timer.setInterval(100)  # 100ms마다 플러시
+        self._log_timer.timeout.connect(self._flush_log_buffer)
+        self._log_timer.start()
+        self.logview.document().setMaximumBlockCount(5000)  # 최근 5,000줄만 유지
+
+        # ★ 통계 카운터 초기화
+        self.total_sent = 0
+        self.total_success = 0
+        self.total_block = 0  # BLOCK + SERVER_ERR + TIMEOUT + RESET 포함
+        self.total_timeout = 0
+        self.total_reset = 0
+        self.total_server_err = 0
+
+        # 스레드 상태 업데이트 제한(B)
+        self._last_status: Dict[int, float] = {}
+        self._status_min_interval = 0.2  # 초
+        self.status_signal.connect(self._update_thread_status)
 
         self.work_threads: List[SenderWorker] = []
+        self.stop_event = threading.Event()
+
+        # 시작/정지 시간
+        self.start_time: Optional[datetime] = None
+        self.stop_time: Optional[datetime] = None
+
+        # === 전송 기록(그래프용) : 초 단위 버킷 ===
+        self._start_monotonic = 0.0
+        self.bucket_lock = threading.Lock()
+        # key = sec(int), value = 합계
+        self.bucket_bytes = {}  # 초당 전송 바이트 합계
+        self.bucket_success = {}  # 초당 성공 건수
+        self.bucket_block = {}  # 초당 차단/오류 건수
+        self.bucket_lat_sum = {}  # 초당 응답시간 합(ms)
+        self.bucket_lat_cnt = {}  # 초당 응답시간 샘플 수
+
+        # 그래프 기능 제어 (On/Off + 샘플링)
+        self.graph_enabled = True
+        self.graph_sample_ms = 0
+        self._last_graph_sample_monotonic = 0.0
+
+        # ---- 파일 로그 관련 ----
+        self.file_log_queue = deque()
+        self.file_log_lock = threading.Lock()
+        self.current_log_date: Optional[str] = None
+        self.current_log_path: Optional[str] = None
+        self._start_file_log_thread()
+
+    # 다크 테마
+    def _apply_dark_theme(self):
+        app = QApplication.instance()
+        app.setStyle("Fusion")
+        palette = QPalette()
+        palette.setColor(QPalette.Window, QColor(30, 30, 30))
+        palette.setColor(QPalette.WindowText, Qt.white)
+        palette.setColor(QPalette.Base, QColor(20, 20, 20))
+        palette.setColor(QPalette.AlternateBase, QColor(35, 35, 35))
+        palette.setColor(QPalette.ToolTipBase, Qt.white)
+        palette.setColor(QPalette.ToolTipText, Qt.white)
+        palette.setColor(QPalette.Text, Qt.white)
+        palette.setColor(QPalette.Button, QColor(45, 45, 45))
+        palette.setColor(QPalette.ButtonText, Qt.white)
+        palette.setColor(QPalette.BrightText, Qt.red)
+        palette.setColor(QPalette.Highlight, QColor(64, 128, 255))
+        palette.setColor(QPalette.HighlightedText, Qt.black)
+        app.setPalette(palette)
+
+        self.setStyleSheet("""
+            QGroupBox{
+                border:1px solid #454545; border-radius:6px;
+                margin-top:12px;
+            }
+            QGroupBox::title{
+                subcontrol-origin: margin; left:10px;
+                padding:0 4px; color:#d0d0d0;
+            }
+            QLabel{ color:#dddddd; }
+            QLineEdit,QPlainTextEdit,QTextEdit,QListWidget,QTableWidget{
+                border:1px solid #555; border-radius:4px; padding:4px;
+            }
+            QPushButton{
+                border:1px solid #5a5a5a; padding:6px 10px; border-radius:6px;
+            }
+            QPushButton:hover{ border:1px solid #8aa8ff; }
+
+            /* 체크박스 */
+            QCheckBox{
+                color:#dddddd;
+            }
+            QCheckBox::indicator {
+                width: 9px;
+                height: 9px;
+                border: 2px solid #ffffff;
+                border-radius: 2px;
+                background-color: #ffffff;
+            }
+            QCheckBox::indicator:unchecked:hover {
+                background-color: #dddddd;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #4f8cff;
+                border: 2px solid #ffffff;
+            }
+
+            /* 라디오 버튼 */
+            QRadioButton{
+                color:#dddddd;
+            }
+            QRadioButton::indicator {
+                width: 8px;
+                height: 8px;
+                border: 2px solid #ffffff;
+                border-radius: 4px;
+                background-color: #ffffff;
+            }
+            QRadioButton::indicator:unchecked:hover {
+                background-color: #dddddd;
+            }
+            QRadioButton::indicator:checked {
+                background-color: #4f8cff;
+                border: 2px solid #ffffff;
+            }
+        """)
 
     def _build_ui(self):
-        layout = QGridLayout(self)
+        outer = QVBoxLayout(self)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        outer.addWidget(scroll)
 
-        # Server box
-        srv = QGroupBox("Server")
+        container = QWidget()
+        scroll.setWidget(container)
+        layout = QGridLayout(container)
+
+        # 서버
+        srv = QGroupBox("서버")
         g1 = QGridLayout()
-        self.ed_host = QLineEdit("127.0.0.1")
-        self.ed_port = QSpinBox(); self.ed_port.setRange(1, 65535); self.ed_port.setValue(80)
+        self.ed_host = QLineEdit("172.16.150.137")
+        self.ed_port = QSpinBox()
+        self.ed_port.setRange(1, 65535)
+        self.ed_port.setValue(5001)
         self.ed_path = QLineEdit("/upload")
-        g1.addWidget(QLabel("Host"), 0, 0); g1.addWidget(self.ed_host, 0, 1)
-        g1.addWidget(QLabel("Port"), 1, 0); g1.addWidget(self.ed_port, 1, 1)
-        g1.addWidget(QLabel("Path"), 2, 0); g1.addWidget(self.ed_path, 2, 1)
+        g1.addWidget(QLabel("주소"), 0, 0)
+        g1.addWidget(self.ed_host, 0, 1)
+        g1.addWidget(QLabel("포트"), 1, 0)
+        g1.addWidget(self.ed_port, 1, 1)
+        g1.addWidget(QLabel("전송할 URL 경로"), 2, 0)
+        g1.addWidget(self.ed_path, 2, 1)
         srv.setLayout(g1)
 
-        # Method & options
-        opt = QGroupBox("HTTP Options")
+        # HTTP 옵션
+        opt = QGroupBox("HTTP 옵션")
         g2 = QGridLayout()
-        self.cb_method = QComboBox(); self.cb_method.addItems(["POST", "PUT", "PATCH", "DELETE"])
-        self.keep_alive = QCheckBox("keep-alive"); self.keep_alive.setChecked(True)
-
-        self.use_chunked = QCheckBox("Transfer-Encoding: chunked")
-        self.ed_chunk_size = QSpinBox(); self.ed_chunk_size.setRange(1, 10_000_000); self.ed_chunk_size.setValue(65536)
-        self.ed_chunk_ext = QLineEdit("")  # e.g. foo=bar or ;foo=bar
-
-        self.use_gzip = QCheckBox("Content-Encoding: gzip")
-
-        g2.addWidget(QLabel("Method"), 0, 0); g2.addWidget(self.cb_method, 0, 1)
+        self.cb_method = QComboBox()
+        self.cb_method.addItems(["POST", "PUT", "PATCH", "DELETE"])
+        self.keep_alive = QCheckBox("연결 유지(keep-alive)")
+        self.keep_alive.setChecked(True)
+        self.use_chunked = QCheckBox("청크 전송(Transfer-Encoding: chunked)")
+        self.ed_chunk_size = QSpinBox()
+        self.ed_chunk_size.setRange(1, 10_000_000)
+        self.ed_chunk_size.setValue(65536)
+        self.ed_chunk_ext = QLineEdit("")
+        self.use_gzip = QCheckBox("본문 압축(Content-Encoding: gzip)")
+        g2.addWidget(QLabel("메서드"), 0, 0)
+        g2.addWidget(self.cb_method, 0, 1)
         g2.addWidget(self.keep_alive, 0, 2)
         g2.addWidget(self.use_chunked, 1, 0)
-        g2.addWidget(QLabel("Chunk size"), 1, 1); g2.addWidget(self.ed_chunk_size, 1, 2)
-        g2.addWidget(QLabel("Chunk ext"), 2, 0); g2.addWidget(self.ed_chunk_ext, 2, 1, 1, 2)
-        g2.addWidget(self.use_gzip, 3, 0)
+        g2.addWidget(QLabel("청크 크기(bytes)"), 1, 1)
+        g2.addWidget(self.ed_chunk_size, 1, 2)
+        g2.addWidget(QLabel("청크 확장자(chunk extensions, 예: foo=1)"), 2, 0)
+        g2.addWidget(self.ed_chunk_ext, 2, 1, 1, 2)
+        g2.addWidget(self.use_gzip, 3, 0, 1, 3)
         opt.setLayout(g2)
 
-        # Body mode
-        body = QGroupBox("Body")
+        # 바디
+        body = QGroupBox("본문(Body)")
         g3 = QGridLayout()
-        self.rb_text = QRadioButton("Text"); self.rb_text.setChecked(True)
-        self.rb_file = QRadioButton("File")
-        self.rb_multipart = QRadioButton("Multipart (file + fields)")
+        help_body = QLabel(
+            "※ ‘텍스트’는 순수 문자열을 그대로 본문으로 보냅니다.\n"
+            "   ‘파일(단일 본문)’은 위의 파일 경로 한 개를 HTTP 본문으로 사용합니다.\n"
+            "   ‘멀티파트(파일 + 텍스트 필드)’는 업로드 폼처럼 파일과 추가 필드를 함께 보냅니다."
+        )
+        help_body.setWordWrap(True)
+
+        self.rb_text = QRadioButton("텍스트")
+        self.rb_text.setChecked(True)
+        self.rb_file = QRadioButton("파일(단일 본문)")
+        self.rb_multipart = QRadioButton("멀티파트(파일 + 텍스트 필드)")
 
         self.txt_body = QPlainTextEdit()
-        self.ed_file = QLineEdit(); self.btn_file = QPushButton("Browse...")
+
+        self.ed_file = QLineEdit()
+        self.btn_file = QPushButton("파일 찾기…")
         self.btn_file.clicked.connect(self._browse_file)
 
         self.ed_mpart_field = QLineEdit("file")
-        self.ed_mpart_textfields = QPlainTextEdit("field1: value1\nfield2: value2")
+        self.ed_mpart_textfields = QPlainTextEdit(
+            "# 한 줄에 하나씩 k: v 형식으로 입력\n"
+            "field1: value1\nfield2: value2"
+        )
         self.ed_mpart_filename_override = QLineEdit("")
-        g3.addWidget(self.rb_text, 0, 0); g3.addWidget(self.rb_file, 0, 1); g3.addWidget(self.rb_multipart, 0, 2)
-        g3.addWidget(QLabel("Text Body"), 1, 0); g3.addWidget(self.txt_body, 1, 1, 1, 2)
-        g3.addWidget(QLabel("File Path"), 2, 0); g3.addWidget(self.ed_file, 2, 1); g3.addWidget(self.btn_file, 2, 2)
-        g3.addWidget(QLabel("Multipart field name"), 3, 0); g3.addWidget(self.ed_mpart_field, 3, 1)
-        g3.addWidget(QLabel("Multipart text fields (k: v)"), 4, 0); g3.addWidget(self.ed_mpart_textfields, 4, 1, 1, 2)
-        g3.addWidget(QLabel("Filename override (optional)"), 5, 0); g3.addWidget(self.ed_mpart_filename_override, 5, 1, 1, 2)
+        mpart_help = QLabel("※ 서버에서 받는 필드명이 다르면 ‘파일 필드명’을 서버 규격에 맞게 바꿔주세요.\n"
+                            "   파일명 강제지정은 Content-Disposition의 filename= 값에 반영됩니다.")
+        mpart_help.setWordWrap(True)
+
+        g3.addWidget(help_body, 0, 0, 1, 3)
+        g3.addWidget(self.rb_text, 1, 0)
+        g3.addWidget(self.rb_file, 1, 1)
+        g3.addWidget(self.rb_multipart, 1, 2)
+        g3.addWidget(QLabel("텍스트 본문"), 2, 0)
+        g3.addWidget(self.txt_body, 2, 1, 1, 2)
+
+        g3.addWidget(QLabel("파일 경로(텍스트/파일/멀티파트 공통)"), 3, 0)
+        g3.addWidget(self.ed_file, 3, 1)
+        g3.addWidget(self.btn_file, 3, 2)
+
+        g3.addWidget(QLabel("멀티파트: 파일 필드명(name)"), 4, 0)
+        g3.addWidget(self.ed_mpart_field, 4, 1)
+        g3.addWidget(QLabel("멀티파트: 추가 텍스트(한 줄에 하나, k: v)"), 5, 0)
+        g3.addWidget(self.ed_mpart_textfields, 5, 1, 1, 2)
+        g3.addWidget(QLabel("멀티파트: 파일명 강제 지정(선택)"), 6, 0)
+        g3.addWidget(self.ed_mpart_filename_override, 6, 1, 1, 2)
+        g3.addWidget(mpart_help, 7, 0, 1, 3)
         body.setLayout(g3)
 
-        # Headers
-        hdr = QGroupBox("Headers")
+        # 헤더
+        hdr = QGroupBox("헤더")
         g4 = QGridLayout()
-        self.ed_headers = QPlainTextEdit("User-Agent: http-blast-uploader/1.0\nPragma: no-cache")
-        self.ed_trailers = QPlainTextEdit("X-Trailer: done")
-        g4.addWidget(QLabel("Extra headers (one per line, 'K: V')"), 0, 0)
+        self.ed_headers = QPlainTextEdit(
+            "# 예시\n"
+            "User-Agent: http-blast-uploader/1.2\n"
+            "Pragma: no-cache\n"
+            "# 필요시 여기에 Authorization, Cookie 등 추가"
+        )
+        self.ed_trailers = QPlainTextEdit(
+            "# chunked 전송일 때만 의미 있는 트레일러 헤더 예시\n"
+            "X-Trailer: done"
+        )
+        hdr_help = QLabel("※ 각 줄을 '이름: 값' 형식으로 입력합니다.\n"
+                          "   Host, Connection, Content-Length/Transfer-Encoding 등은 프로그램이 자동으로 채웁니다.")
+        hdr_help.setWordWrap(True)
+        g4.addWidget(QLabel("추가 헤더(한 줄에 하나, '이름: 값')"), 0, 0)
         g4.addWidget(self.ed_headers, 1, 0)
-        g4.addWidget(QLabel("Trailing headers (for chunked)"), 2, 0)
+        g4.addWidget(QLabel("트레일러 헤더(chunked일 때 사용, '이름: 값')"), 2, 0)
         g4.addWidget(self.ed_trailers, 3, 0)
+        g4.addWidget(hdr_help, 4, 0)
         hdr.setLayout(g4)
 
-        # Run controls
-        runb = QGroupBox("Run")
-        g5 = QGridLayout()
-        self.ed_threads = QSpinBox(); self.ed_threads.setRange(1, 16); self.ed_threads.setValue(4)
-        self.ed_repeat = QSpinBox(); self.ed_repeat.setRange(1, 1_000_000); self.ed_repeat.setValue(1)
-        self.fire_and_go = QCheckBox("Fire-and-go (read minimal response)"); self.fire_and_go.setChecked(True)
-        self.btn_start = QPushButton("Start")
-        self.btn_start.clicked.connect(self._start_run)
+        # ───────── 전송 속도 설정 ─────────
+        speed = QGroupBox("전송 속도 설정")
+        gspeed = QGridLayout()
 
-        g5.addWidget(QLabel("Threads"), 0, 0); g5.addWidget(self.ed_threads, 0, 1)
-        g5.addWidget(QLabel("Repeat per item"), 0, 2); g5.addWidget(self.ed_repeat, 0, 3)
-        g5.addWidget(self.fire_and_go, 1, 0, 1, 4)
-        g5.addWidget(self.btn_start, 2, 0, 1, 4)
-        runb.setLayout(g5)
+        self.ed_delay_ms = QSpinBox()
+        self.ed_delay_ms.setRange(0, 60_000)
+        self.ed_delay_ms.setValue(0)
 
-        # Files selection area for batch
-        srcb = QGroupBox("Source (Batch)")
+        self.cb_pick_mode = QComboBox()
+        self.cb_pick_mode.addItems(["파일 목록 순서대로", "파일 목록에서 무작위"])
+
+        self.ed_log_every = QSpinBox()
+        self.ed_log_every.setRange(1, 1_000_000)
+        self.ed_log_every.setValue(1)
+
+        gspeed.addWidget(QLabel("요청 간 대기(ms) (0ms: 쉬지 않고 전송, 100ms: 0.1초 간격)"), 0, 0, 1, 2)
+        gspeed.addWidget(self.ed_delay_ms, 0, 1)
+
+        gspeed.addWidget(QLabel("파일 선택 방식"), 1, 0)
+        gspeed.addWidget(self.cb_pick_mode, 1, 1, 1, 1)
+
+        gspeed.addWidget(QLabel("로그 표시 간격(건마다, 1=매건)"), 2, 0)
+        gspeed.addWidget(self.ed_log_every, 2, 1)
+
+        speed.setLayout(gspeed)
+
+        # ───────── 그래프 설정 ─────────
+        graph = QGroupBox("그래프 설정")
+        ggraph = QGridLayout()
+
+        self.cb_enable_graph = QCheckBox("그래프 통계 수집 활성화")
+        self.cb_enable_graph.setChecked(True)
+
+        self.ed_graph_sample_ms = QSpinBox()
+        self.ed_graph_sample_ms.setRange(0, 60_000)
+        self.ed_graph_sample_ms.setValue(100)  # 기본 100ms 샘플링
+
+        ggraph.addWidget(self.cb_enable_graph, 0, 0, 1, 3)
+        ggraph.addWidget(QLabel("그래프 샘플링 주기(ms, 0=모든 요청 기록)"), 1, 0)
+        ggraph.addWidget(self.ed_graph_sample_ms, 1, 1)
+
+        graph.setLayout(ggraph)
+
+        # ───────── 로그 저장 위치 ─────────
+        logcfg = QGroupBox("로그 저장 위치")
+        glog = QGridLayout()
+        self.ed_log_dir = QLineEdit(self.log_dir)
+        self.btn_log_dir = QPushButton("폴더 선택…")
+        self.btn_log_dir.clicked.connect(self._choose_log_dir)
+        glog.addWidget(QLabel("로그 파일 폴더"), 0, 0)
+        glog.addWidget(self.ed_log_dir, 0, 1)
+        glog.addWidget(self.btn_log_dir, 0, 2)
+        logcfg.setLayout(glog)
+
+        # 파일 목록
+        srcb = QGroupBox("파일 목록(배치 전송)")
         g6 = QGridLayout()
+        self.file_list = QListWidget()
+        self.btn_add_files = QPushButton("파일 추가…")
+        self.btn_clear_files = QPushButton("목록 비우기")
         self.ed_folder = QLineEdit("")
-        self.btn_folder = QPushButton("Pick folder (optional)")
+        self.btn_folder = QPushButton("폴더에서 모두 추가…")
+        self.btn_add_files.clicked.connect(self._add_files)
+        self.btn_clear_files.clicked.connect(self._clear_file_list)
         self.btn_folder.clicked.connect(self._browse_folder)
-        g6.addWidget(QLabel("Folder w/ files (send each file once)"), 0, 0)
-        g6.addWidget(self.ed_folder, 1, 0)
-        g6.addWidget(self.btn_folder, 1, 1)
+
+        g6.addWidget(QLabel("여기에 쌓인 파일을 스레드가 나눠서 보냅니다."), 0, 0, 1, 3)
+        g6.addWidget(self.file_list, 1, 0, 1, 3)
+        g6.addWidget(self.btn_add_files, 2, 0)
+        g6.addWidget(self.btn_clear_files, 2, 1)
+        g6.addWidget(self.btn_folder, 2, 2)
+        g6.addWidget(QLabel("선택한 폴더 경로(선택)"), 3, 0)
+        g6.addWidget(self.ed_folder, 3, 1, 1, 2)
         srcb.setLayout(g6)
 
-        # Log
+        # 실행 / 시작시간
+        runb = QGroupBox("실행")
+        g5 = QGridLayout()
+        self.ed_threads = QSpinBox()
+        self.ed_threads.setRange(1, 16)
+        self.ed_threads.setValue(4)
+        self.ed_threads.setToolTip("최소 1, 최대 16 스레드까지 설정할 수 있습니다.")
+        self.ed_repeat = QSpinBox()
+        self.ed_repeat.setRange(0, 1_000_000)
+        self.ed_repeat.setValue(1)
+        self.fire_and_go = QCheckBox("응답 최소 읽기(Fire-and-go)")
+        self.fire_and_go.setChecked(True)
+        self.btn_start = QPushButton("시작")
+        self.btn_stop = QPushButton("정지")
+        self.btn_show_charts = QPushButton("그래프 보기")
+
+        self.btn_start.clicked.connect(self._start_run)
+        self.btn_stop.clicked.connect(self._stop_run)
+        self.btn_show_charts.clicked.connect(self._show_charts)
+
+        self.time_label = QLabel("시작/정지 시각: -")
+
+        g5.addWidget(QLabel("동시 전송(스레드, 1~16개)"), 0, 0)
+        g5.addWidget(self.ed_threads, 0, 1)
+        g5.addWidget(QLabel("반복(회) — 0이면 무한"), 0, 2)
+        g5.addWidget(self.ed_repeat, 0, 3)
+        g5.addWidget(self.fire_and_go, 1, 0, 1, 4)
+        hbtn = QHBoxLayout()
+        hbtn.addWidget(self.btn_start)
+        hbtn.addWidget(self.btn_stop)
+        hbtn.addWidget(self.btn_show_charts)
+
+        g5.addLayout(hbtn, 2, 0, 1, 4)
+        g5.addWidget(self.time_label, 3, 0, 1, 4)
+        runb.setLayout(g5)
+
+        # 스레드 상태 테이블
+        thb = QGroupBox("스레드 상태(실시간)")
+        gth = QVBoxLayout()
+        self.thread_table = QTableWidget(0, 2)
+        self.thread_table.setHorizontalHeaderLabels(["스레드", "현재 전송 파일"])
+        self.thread_table.horizontalHeader().setStretchLastSection(True)
+        gth.addWidget(self.thread_table)
+        thb.setLayout(gth)
+
+        # 로그
         self.logview = QTextEdit()
         self.logview.setReadOnly(True)
 
-        # place
-        layout.addWidget(srv, 0, 0, 1, 1)
-        layout.addWidget(opt, 0, 1, 1, 1)
-        layout.addWidget(body, 1, 0, 1, 2)
-        layout.addWidget(hdr, 2, 0, 1, 2)
-        layout.addWidget(srcb, 3, 0, 1, 2)
-        layout.addWidget(runb, 4, 0, 1, 2)
-        layout.addWidget(self.logview, 5, 0, 1, 2)
+        # ★ 통계 라벨
+        self.lbl_stats = QLabel("총 전송: 0  |  성공: 0  |  차단/오류: 0 (차단율 0.0%)")
+        self.lbl_stats.setAlignment(Qt.AlignLeft)
+
+        # ───────── 최종 배치 ─────────
+        layout.addWidget(srv,   0, 0, 1, 1)
+        layout.addWidget(opt,   0, 1, 1, 1)
+        layout.addWidget(body,  1, 0, 1, 2)
+        layout.addWidget(hdr,   2, 0, 1, 2)
+
+        layout.addWidget(speed, 3, 0, 1, 2)
+        layout.addWidget(graph, 4, 0, 1, 2)
+        layout.addWidget(logcfg,5, 0, 1, 2)
+        layout.addWidget(srcb,  6, 0, 1, 2)
+        layout.addWidget(runb,  7, 0, 1, 2)
+        layout.addWidget(thb,   8, 0, 1, 2)
+
+        layout.addWidget(self.lbl_stats, 9, 0, 1, 2)
+        layout.addWidget(self.logview,  10, 0, 1, 2)
+
+        layout.setRowStretch(10, 1)
+
+    def _show_charts(self):
+        with self.bucket_lock:
+            if not self.bucket_bytes:
+                QMessageBox.information(self, "그래프", "수집된 전송 기록이 없습니다.\n시험을 한 번 실행한 뒤 눌러주세요.")
+                return
+
+            # 버킷 복사
+            bytes_b = dict(self.bucket_bytes)
+            succ_b = dict(self.bucket_success)
+            block_b = dict(self.bucket_block)
+            lat_sum_b = dict(self.bucket_lat_sum)
+            lat_cnt_b = dict(self.bucket_lat_cnt)
+
+        max_sec = max(bytes_b.keys() | succ_b.keys() | block_b.keys() | lat_sum_b.keys())
+        nsec = max_sec + 1
+
+        x_sec = list(range(nsec))
+
+        # 1) 초당 트래픽(Mbps)
+        bytes_per_sec = [0] * nsec
+        for s, val in bytes_b.items():
+            if 0 <= s < nsec:
+                bytes_per_sec[s] = val
+        mbps = [(b * 8.0) / 1_000_000 for b in bytes_per_sec]
+
+        # 2) 초당 성공/차단 건수
+        success_per_sec = [0] * nsec
+        block_per_sec = [0] * nsec
+        for s, val in succ_b.items():
+            if 0 <= s < nsec:
+                success_per_sec[s] = val
+        for s, val in block_b.items():
+            if 0 <= s < nsec:
+                block_per_sec[s] = val
+
+        # 3) 초당 평균 응답시간(ms)
+        avg_rt = [0.0] * nsec
+        for s in range(nsec):
+            cnt = lat_cnt_b.get(s, 0)
+            if cnt > 0:
+                avg_rt[s] = lat_sum_b.get(s, 0.0) / cnt
+            else:
+                avg_rt[s] = 0.0
+
+        fig, axes = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
+
+        # 1. 트래픽
+        axes[0].plot(x_sec, mbps)
+        axes[0].set_ylabel("트래픽 (Mbps)")
+        axes[0].set_title("가동 시간에 따른 전송 트래픽")
+
+        # 2. 성공/차단
+        axes[1].plot(x_sec, success_per_sec, label="성공(2xx~3xx)")
+        axes[1].plot(x_sec, block_per_sec, label="차단/오류(응답 없음 포함)")
+        axes[1].set_ylabel("건수")
+        axes[1].set_title("가동 시간에 따른 성공/차단 건수")
+        axes[1].legend()
+
+        # 3. 평균 응답시간
+        axes[2].plot(x_sec, avg_rt)
+        axes[2].set_xlabel("가동 후 시간 (초)")
+        axes[2].set_ylabel("평균 응답 시간 (ms)")
+        axes[2].set_title("가동 시간에 따른 평균 응답 시간")
+
+        plt.tight_layout()
+        plt.show()
 
     # ---------- UI helpers ----------
+
     def _browse_file(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Pick file")
+        path, _ = QFileDialog.getOpenFileName(self, "파일 선택")
         if path:
             self.ed_file.setText(path)
             self.rb_file.setChecked(True)
 
     def _browse_folder(self):
-        path = QFileDialog.getExistingDirectory(self, "Pick folder")
-        if path:
-            self.ed_folder.setText(path)
+        folder = QFileDialog.getExistingDirectory(self, "폴더 선택")
+        if folder:
+            self.ed_folder.setText(folder)
+            added = 0
+            for name in os.listdir(folder):
+                p = os.path.join(folder, name)
+                if os.path.isfile(p):
+                    self.file_list.addItem(p)
+                    added += 1
+            self._log_enqueue(f"[안내] 폴더에서 {added}개 파일 추가.")
 
-    def _append_log(self, s: str):
-        self.logview.append(s)
+    def _add_files(self):
+        paths, _ = QFileDialog.getOpenFileNames(self, "파일들 선택")
+        for p in paths:
+            if os.path.isfile(p):
+                self.file_list.addItem(p)
+        if paths:
+            self._log_enqueue(f"[안내] {len(paths)}개 파일 추가.")
 
-    def _log(self, s: str):
-        self.log_signal.emit(s)
+    def _clear_file_list(self):
+        self.file_list.clear()
+        self._log_enqueue("[안내] 파일 목록을 비웠습니다.")
+
+    def _choose_log_dir(self):
+        folder = QFileDialog.getExistingDirectory(self, "로그 저장 폴더 선택")
+        if folder:
+            self.log_dir = folder
+            os.makedirs(self.log_dir, exist_ok=True)
+            self.ed_log_dir.setText(self.log_dir)
+            self._log_enqueue(f"[안내] 로그 저장 폴더 변경: {self.log_dir}")
+
+    # ---------- Log (A) 화면 + 파일 ----------
+
+    def _log_enqueue(self, s: str):
+        # 화면 로그 큐
+        with self._log_lock:
+            MAX_BUF = 10000
+            if len(self._log_buf) >= MAX_BUF:
+                self._log_buf.popleft()
+            self._log_buf.append(s)
+
+        # 파일 로그 큐에도 기록 (타임스탬프 포함)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self._file_log_enqueue(f"[{timestamp}] {s}")
+
+    def _flush_log_buffer(self):
+        batch = []
+        with self._log_lock:
+            while self._log_buf and len(batch) < 500:
+                batch.append(self._log_buf.popleft())
+
+        if not batch:
+            return
+
+        last = batch[-1]
+        others = len(batch) - 1
+        if others > 0:
+            summary = f"{last} 외 {others}건"
+        else:
+            summary = last
+
+        # 색상만 태그로 판단
+        if last.startswith("[SUCCESS]"):
+            last_tag = "success"
+        elif last.startswith("[BLOCK]"):
+            last_tag = "block"
+        elif last.startswith("[TIMEOUT]"):
+            last_tag = "timeout"
+        elif last.startswith("[RESET]"):
+            last_tag = "reset"
+        elif last.startswith("[SERVER_ERR]"):
+            last_tag = "server_err"
+        elif last.startswith("[ERROR]") or last.startswith("[FATAL]"):
+            last_tag = "error"
+        else:
+            last_tag = "info"
+
+        default_color = self.logview.palette().color(QPalette.Text)
+
+        if last_tag == "success":
+            color = QColor("#80ff80")
+        elif last_tag in ("block", "server_err"):
+            color = QColor("#ff8080")
+        elif last_tag in ("timeout", "reset"):
+            color = QColor("#ffcc66")
+        elif last_tag == "error":
+            color = QColor("#ff5555")
+        else:
+            color = default_color
+
+        self.logview.setTextColor(color)
+        self.logview.append(summary)
+        self.logview.setTextColor(default_color)
+
+        self._update_stats_label()
+
+    def _update_stats_label(self):
+        if self.total_sent > 0:
+            block_rate = (self.total_block * 100.0) / self.total_sent
+        else:
+            block_rate = 0.0
+
+        self.lbl_stats.setText(
+            f"총 전송: {self.total_sent}  |  "
+            f"성공: {self.total_success}  |  "
+            f"차단/오류: {self.total_block} (차단율 {block_rate:.1f}%)  |  "
+            f"타임아웃: {self.total_timeout}  |  "
+            f"RST: {self.total_reset}  |  "
+            f"5xx: {self.total_server_err}"
+        )
+
+    # ---------- Thread status (B) ----------
+
+    def _reset_thread_table(self, threads: int):
+        self.thread_table.setRowCount(threads)
+        self._last_status.clear()
+        for i in range(threads):
+            self.thread_table.setItem(i, 0, QTableWidgetItem(str(i + 1)))
+            self.thread_table.setItem(i, 1, QTableWidgetItem("-"))
+
+    def _update_thread_status(self, thread_idx: int, desc: str):
+        now = time.monotonic()
+        last = self._last_status.get(thread_idx, 0.0)
+        if desc != "-" and now - last < self._status_min_interval:
+            return
+        self._last_status[thread_idx] = now
+        row = thread_idx - 1
+        if 0 <= row < self.thread_table.rowCount():
+            self.thread_table.setItem(row, 1, QTableWidgetItem(desc))
 
     # ---------- Run ----------
+
     def _start_run(self):
         try:
+            self.stop_event.clear()
+
+            # 통계/기록 초기화
+            self.total_sent = 0
+            self.total_success = 0
+            self.total_block = 0
+            self.total_timeout = 0
+            self.total_reset = 0
+            self.total_server_err = 0
+            self._update_stats_label()
+
+            # 그래프용 버킷 초기화 (새 실행마다 리셋)
+            self._start_monotonic = time.monotonic()
+            with self.bucket_lock:
+                self.bucket_bytes.clear()
+                self.bucket_success.clear()
+                self.bucket_block.clear()
+                self.bucket_lat_sum.clear()
+                self.bucket_lat_cnt.clear()
+
+            # 그래프 On/Off 및 샘플링 주기 설정
+            self.graph_enabled = self.cb_enable_graph.isChecked()
+            self.graph_sample_ms = int(self.ed_graph_sample_ms.value())
+            self._last_graph_sample_monotonic = 0.0
+
             host = self.ed_host.text().strip()
             port = int(self.ed_port.value())
             path = self.ed_path.text().strip()
@@ -557,92 +1212,254 @@ class UploaderGUI(QWidget):
             chunk_ext = self.ed_chunk_ext.text().strip()
             use_gzip = self.use_gzip.isChecked()
 
-            # body mode
             use_multipart = self.rb_multipart.isChecked()
             is_file = self.rb_file.isChecked()
             is_text = self.rb_text.isChecked()
 
             text_body = self.txt_body.toPlainText()
-            file_path = self.ed_file.text().strip() if is_file or use_multipart else None
+            single_file_path = self.ed_file.text().strip() if (is_file or use_multipart) else None
 
-            # multipart fields
             m_field = self.ed_mpart_field.text().strip() or "file"
-            m_text_fields = parse_header_lines(self.ed_mpart_textfields.toPlainText())
+            m_text_fields = parse_kv_lines(self.ed_mpart_textfields.toPlainText())
             m_fname_override = self.ed_mpart_filename_override.text().strip() or None
 
-            # headers
-            extra_headers = parse_header_lines(self.ed_headers.toPlainText())
-            trailing_headers = parse_header_lines(self.ed_trailers.toPlainText())
+            extra_headers = parse_kv_lines(self.ed_headers.toPlainText())
+            trailing_headers = parse_kv_lines(self.ed_trailers.toPlainText())
 
-            # run
             threads = int(self.ed_threads.value())
-            repeat = int(self.ed_repeat.value())
+            repeat = int(self.ed_repeat.value())  # 0 -> 무한
             fire_and_go = self.fire_and_go.isChecked()
+            delay_ms = int(self.ed_delay_ms.value())
+            delay_between = delay_ms / 1000.0
+            random_mode = (self.cb_pick_mode.currentIndex() == 1)
+            log_every = int(self.ed_log_every.value())
 
-            # build base options
             base = ClientOptions(
                 host=host, port=port, path=path, method=method, keep_alive=keep_alive,
                 use_chunked=use_chunked, chunk_size=chunk_size, chunk_ext=chunk_ext,
                 use_gzip=use_gzip, use_multipart=use_multipart,
                 extra_headers=extra_headers, trailing_headers=trailing_headers,
-                fire_and_go=fire_and_go
+                fire_and_go=fire_and_go, delay_between=delay_between
             )
 
             if is_text and not use_multipart:
                 base.body_text = text_body.encode("utf-8")
                 base.file_path = None
             else:
-                base.file_path = file_path
+                base.file_path = single_file_path
 
-            # multipart details
             base.multipart_field_name = m_field
             base.multipart_text_fields = m_text_fields
             base.multipart_filename_override = m_fname_override
 
-            # prepare job queue
-            job_q: queue.Queue = queue.Queue()
+            all_items: List = []
+            # 파일 목록
+            for i in range(self.file_list.count()):
+                p = self.file_list.item(i).text()
+                if os.path.isfile(p):
+                    all_items.append(p)
 
-            # 1) if folder set: enqueue all files
+            # 목록이 비어 있으면 폴더 또는 단일/텍스트/빈 바디
             folder = self.ed_folder.text().strip()
-            if folder and os.path.isdir(folder):
-                cnt = 0
+            if not all_items and folder and os.path.isdir(folder):
                 for name in os.listdir(folder):
                     p = os.path.join(folder, name)
                     if os.path.isfile(p):
-                        job_q.put(p)
-                        cnt += 1
-                self._log(f"[+] Enqueued {cnt} files from folder.")
-            else:
-                # 2) single item
-                if is_text and not use_multipart:
-                    job_q.put(("__TEXT__", text_body))
-                elif file_path:
-                    job_q.put(file_path)
-                else:
-                    # empty body
-                    job_q.put(None)
+                        all_items.append(p)
+                if all_items:
+                    self._log_enqueue(f"[안내] 폴더에서 {len(all_items)}개 파일을 큐에 등록.")
 
-            # start threads
+            if not all_items:
+                if is_text and not use_multipart:
+                    all_items.append(("__TEXT__", text_body))
+                elif single_file_path:
+                    all_items.append(single_file_path)
+                else:
+                    all_items.append(None)
+
+            self._log_enqueue(
+                f"[시작] 항목 {len(all_items)}개. 스레드={threads}, 반복={repeat if repeat>0 else '무한'}, "
+                f"메서드={method}, {'chunked' if use_chunked else 'content-length'}, "
+                f"{'gzip' if use_gzip else 'no-gzip'}, keep-alive={keep_alive}, "
+                f"지연={delay_ms}ms, 선택방식={'랜덤' if random_mode else '순차'}, 로그간격={log_every}, "
+                f"그래프={'ON' if self.graph_enabled else 'OFF'}, 샘플링={self.graph_sample_ms}ms"
+            )
+
+            # 시작/정지 시간 UI
+            self.start_time = datetime.now()
+            self.stop_time = None
+            self.time_label.setText(f"시작/정지 시각: 시작 {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+            # 스레드 테이블 초기화
+            self._reset_thread_table(threads)
+
+            # 스레드 가동
             self.work_threads = []
             for i in range(threads):
-                thr = SenderWorker(i + 1, job_q, self._log, base, repeat)
+                thr = SenderWorker(
+                    idx=i + 1,
+                    all_items=all_items,
+                    log_cb=self._log_enqueue,
+                    status_cb=lambda tid, desc: self.status_signal.emit(tid, desc),
+                    stats_cb=lambda b, code, el: self._on_stats(b, code, el),
+                    base_opts=base,
+                    repeat=repeat,
+                    stop_flag=self.stop_event,
+                    random_mode=random_mode,
+                    log_every=log_every,
+                )
                 thr.start()
                 self.work_threads.append(thr)
 
+            # 감시자
             def watcher():
                 for t in self.work_threads:
                     t.join()
-                self._log("[*] All threads finished.")
+                self._log_enqueue("[완료] 모든 스레드 종료.")
 
-            w = threading.Thread(target=watcher, daemon=True)
-            w.start()
-
-            self._log(f"Started: {threads} threads, repeat={repeat}, method={method}, "
-                      f"{'chunked' if use_chunked else 'content-length'}, "
-                      f"{'gzip' if use_gzip else 'no-gzip'}, keep_alive={keep_alive}")
+            threading.Thread(target=watcher, daemon=True).start()
 
         except Exception as e:
-            self._log(f"[!] ERROR: {e}\n{traceback.format_exc()}")
+            self._log_enqueue(f"[오류] {e}\n{traceback.format_exc()}")
+
+    def _on_stats(self, bytes_sent: int, status_code: Optional[int], elapsed_ms: Optional[float]):
+        # 1) 누적 통계 업데이트
+        self.total_sent += 1
+
+        if status_code is None:
+            self.total_block += 1
+            self.total_timeout += 1
+        else:
+            if 200 <= status_code < 300:
+                self.total_success += 1
+            elif 400 <= status_code < 500:
+                self.total_block += 1
+            elif 500 <= status_code < 600:
+                self.total_server_err += 1
+            else:
+                pass
+
+        self._update_stats_label()
+
+        # 2) 그래프 기록: ON일 때만
+        if not self.graph_enabled:
+            return
+
+        b = bytes_sent or 0
+        now = time.monotonic()
+        t_rel = now - self._start_monotonic
+        sec = int(t_rel)
+
+        with self.bucket_lock:
+            # 샘플링 주기(ms) > 0 이면 일정 간격으로만 기록
+            if self.graph_sample_ms > 0:
+                interval_sec = self.graph_sample_ms / 1000.0
+                if (now - self._last_graph_sample_monotonic) < interval_sec:
+                    return
+                self._last_graph_sample_monotonic = now
+
+            # 전송 바이트
+            self.bucket_bytes[sec] = self.bucket_bytes.get(sec, 0) + b
+
+            # 성공 / 차단 건수
+            if status_code is None:
+                self.bucket_block[sec] = self.bucket_block.get(sec, 0) + 1
+            else:
+                if 200 <= status_code < 400:
+                    self.bucket_success[sec] = self.bucket_success.get(sec, 0) + 1
+                else:
+                    self.bucket_block[sec] = self.bucket_block.get(sec, 0) + 1
+
+            # 응답 시간 (평균값용)
+            if elapsed_ms is not None:
+                self.bucket_lat_sum[sec] = self.bucket_lat_sum.get(sec, 0.0) + elapsed_ms
+                self.bucket_lat_cnt[sec] = self.bucket_lat_cnt.get(sec, 0) + 1
+
+    def _stop_run(self):
+        self.stop_event.set()
+        self._log_enqueue("[정지] 중지 요청됨. 진행 중 작업이 마무리되면 종료됩니다.")
+        if self.start_time and not self.stop_time:
+            self.stop_time = datetime.now()
+            self.time_label.setText(
+                f"시작/정지 시각: 시작 {self.start_time.strftime('%Y-%m-%d %H:%M:%S')} / "
+                f"정지 {self.stop_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+
+    # ----------------------------------------------------------
+    #                파일 로그 전용 쓰레드 (일 단위 회전 + 압축)
+    # ----------------------------------------------------------
+    def _start_file_log_thread(self):
+        def worker():
+            fp = None
+            current_date = None
+            current_path = None
+
+            while True:
+                try:
+                    today = datetime.now().strftime("%Y%m%d")
+                    # 날짜 변경 시: 이전 로그파일 gzip 압축 + 삭제, 새 파일 생성
+                    if current_date != today:
+                        # 이전 파일 처리
+                        if fp is not None and current_path is not None:
+                            try:
+                                fp.flush()
+                                fp.close()
+                            except Exception:
+                                pass
+                            # gzip 압축
+                            try:
+                                gz_path = current_path + ".gz"
+                                with open(current_path, "rb") as f_in, gzip.open(gz_path, "wb") as f_out:
+                                    shutil.copyfileobj(f_in, f_out)
+                                os.remove(current_path)
+                            except Exception as e:
+                                # 최소 디버그
+                                try:
+                                    sys.stderr.write(f"[FILE_LOG_ROTATE_ERROR] {e}\n")
+                                except Exception:
+                                    pass
+
+                        # 새 파일 생성 (연월일시간 포함)
+                        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        os.makedirs(self.log_dir, exist_ok=True)
+                        current_path = os.path.join(self.log_dir, f"log_{ts}.txt")
+                        fp = open(current_path, "a", encoding="utf-8")
+                        current_date = today
+                        # GUI에서 참고할 수 있도록 보관
+                        self.current_log_date = current_date
+                        self.current_log_path = current_path
+                        fp.write(f"[SYSTEM] New log file started at {ts}\n")
+                        fp.flush()
+
+                    # 큐에서 로그 batch 가져오기
+                    batch = []
+                    with self.file_log_lock:
+                        while self.file_log_queue and len(batch) < 500:
+                            batch.append(self.file_log_queue.popleft())
+
+                    if batch and fp:
+                        for line in batch:
+                            fp.write(line + "\n")
+                        fp.flush()
+
+                    time.sleep(0.1)
+
+                except Exception as e:
+                    # 디버깅용 최소 로그
+                    try:
+                        if fp:
+                            fp.write(f"[FILE_LOG_ERROR] {e}\n")
+                            fp.flush()
+                    except Exception:
+                        pass
+                    time.sleep(1)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _file_log_enqueue(self, s: str):
+        with self.file_log_lock:
+            self.file_log_queue.append(s)
+
 
 # ---------- Main ----------
 
@@ -651,6 +1468,7 @@ def main():
     gui = UploaderGUI()
     gui.show()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

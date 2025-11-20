@@ -1,6 +1,0 @@
-"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","33795","test_dooray_login","test_services.comment.dooray_board_comment","Thu Nov 20 16:08:21 KST 2025","failed","Thu Nov 20 16:08:55 KST 2025","","test_dooray_board_comment_compare","",""
-"","10763","test_dooray_pattern_board_comment","test_services.comment.dooray_board_comment","Thu Nov 20 16:09:06 KST 2025","passed","Thu Nov 20 16:09:17 KST 2025","","test_dooray_board_comment_compare","",""
-"","11105","test_dooray_normal_board_comment","test_services.comment.dooray_board_comment","Thu Nov 20 16:08:55 KST 2025","passed","Thu Nov 20 16:09:06 KST 2025","","test_dooray_board_comment_compare","",""
-"","9877","test_dooray_keyword_board_comment","test_services.comment.dooray_board_comment","Thu Nov 20 16:09:17 KST 2025","passed","Thu Nov 20 16:09:27 KST 2025","","test_dooray_board_comment_compare","",""
-"","9264","test_dooray_attach_board_comment","test_services.comment.dooray_board_comment","Thu Nov 20 16:09:27 KST 2025","passed","Thu Nov 20 16:09:36 KST 2025","","test_dooray_board_comment_compare","",""

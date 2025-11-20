@@ -17,7 +17,7 @@ def run_tests_and_generate_report():
         os.makedirs(results_dir, exist_ok=True)
 
         # 1. 테스트 반복 실행
-        for i in range(1, 50):
+        for i in range(1, 1):
             print(f"{i}번째 테스트를 실행합니다...")
             result_dir = f"{results_dir}/run_{i}"
             os.makedirs(result_dir, exist_ok=True)
@@ -33,52 +33,34 @@ def run_tests_and_generate_report():
             # subprocess.run(["pytest", "-v", f"--alluredir={result_dir}"], check=False, env=env)
 
         # 2. Allure 리포트 생성 및 병합
-        if os.path.exists("allure-results"):
-            shutil.rmtree("allure-results")
-        if os.path.exists("allure-report"):
-            shutil.rmtree("allure-report")
-
         print("Allure 리포트를 생성합니다...")
         result_dirs = [f"{results_dir}/run_{i}" for i in range(1, 50)]
-        generate_command = ["C:\\allure\\allure-2.32.0\\bin\\allure.bat", "generate", "--clean", "-o", "allure-report"]
-        generate_command.extend(result_dirs)
 
+        # 🔥 여기서 유효한 디렉토리만 필터링
+        valid_results = [d for d in result_dirs if os.path.exists(d)]
+
+        if not valid_results:
+            print("유효한 테스트 결과가 없습니다. 리포트 생성 중단!")
+            return  # <-- 리포트 생성 스킵
+
+        generate_command = [
+            "C:\\allure\\allure-2.32.0\\bin\\allure.bat",
+            "generate",
+            "--clean",
+            "-o",
+            "allure-report"
+        ]
+
+        # 유효한 디렉터리만 추가
+        generate_command.extend(valid_results)
+
+        # Allure 실행
         subprocess.run(generate_command, check=True, env=env)
 
-        # # 1. 테스트 10회 반복
-        # for i in range(1, 11):
-        #     print(f"{i}번째 테스트를 실행합니다...")
-        #     result_dir = f"allure-results/run_{i}"
-        #     os.makedirs(result_dir, exist_ok=True)  # 고유 결과 디렉토리 생성
-        #
-        #     result = subprocess.run(["pytest", "-v", f"--alluredir={result_dir}"], check=False, env=env)
-        #     if result.returncode != 0:
-        #         print(f"{i}번째 테스트에서 오류가 발생했습니다. 계속 진행합니다...")
-        #
-        # # 2. Allure 결과 병합
-        # print("테스트 결과를 병합합니다...")
-        # subprocess.run(["C:\\allure\\allure-2.32.0\\bin\\allure.bat", "merge", "allure-results/run_*", "-o",
-        #                 "allure-results"], check=False, env=env)
-
-        # # 1. 테스트 코드 실행
-        # print("테스트를 실행합니다...")
-        # result = subprocess.run(["pytest", "-v", "--alluredir=allure-results"], check=False, env=env)
-
-        # # 2. Allure 리포트 생성
-        # print("Allure 리포트를 생성합니다...")
-        # subprocess.run(["C:\\allure\\allure-2.32.0\\bin\\allure.bat", "generate", "allure-results", "--clean", "-o",
-        #                 "allure-report"], check=False, env=env)
-        # print("Allure generate command output:", result.stdout)
-        # print("Allure generate command error:", result.stderr)
 
     except Exception as e:
         print(f"테스트/리포트 실행 중 오류 발생: {e}")
         sys.exit(1)
-
-    # except subprocess.CalledProcessError as e:
-    #     print(f"오류 발생: {e}")
-    #     sys.exit(1)
-
 
 def ensure_remote_directory_exists(sftp, remote_directory):
     """

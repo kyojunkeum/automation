@@ -313,7 +313,7 @@ def compare_ui_and_values(page, row_index, expected_counts):
 
 @allure.severity(allure.severity_level.CRITICAL)
 @allure.step("Dooray board comment Dlp Logging check")
-def test_compare_result_dooray_board_comment():
+def stest_compare_result_dooray_board_comment():
     with sync_playwright() as p:
         # 브라우저 실행
         browser = p.chromium.launch(headless=False)

@@ -20,7 +20,16 @@ def run_tests_and_generate_report():
             print(f"{i}번째 테스트를 실행합니다...")
             result_dir = f"{results_dir}/run_{i}"
             os.makedirs(result_dir, exist_ok=True)
-            subprocess.run(["pytest", "-v", f"--alluredir={result_dir}"], check=False, env=env)
+
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", "-v", f"--alluredir={result_dir}"],
+                env=env
+            )
+
+            if proc.returncode != 0:
+                print(f"{i}번째 테스트에서 오류 발생(returncode={proc.returncode}). 반복을 중단합니다.")
+                break
+            # subprocess.run(["pytest", "-v", f"--alluredir={result_dir}"], check=False, env=env)
 
         # 2. Allure 리포트 생성 및 병합
         print("Allure 리포트를 생성합니다...")
@@ -56,9 +65,13 @@ def run_tests_and_generate_report():
         # print("Allure generate command output:", result.stdout)
         # print("Allure generate command error:", result.stderr)
 
-    except subprocess.CalledProcessError as e:
-        print(f"오류 발생: {e}")
+    except Exception as e:
+        print(f"테스트/리포트 실행 중 오류 발생: {e}")
         sys.exit(1)
+
+    # except subprocess.CalledProcessError as e:
+    #     print(f"오류 발생: {e}")
+    #     sys.exit(1)
 
 
 def ensure_remote_directory_exists(sftp, remote_directory):

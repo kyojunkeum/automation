@@ -94,11 +94,17 @@ def test_dooray_normal_board_comment(request):
             page.get_by_role("link", name="자유게시판").click()
 
             # 가장 위에 게시글 클릭
-            page.get_by_role("gridcell", name="기본로깅테스트 [4]").click()
+            page.locator("div[role='gridcell']").nth(2).click()
+            # page.get_by_role("gridcell", name="기본로깅테스트 [4]").click()
 
-            # 댓글창 입력
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("기본댓글로깅테스트")
+            # 댓글창 클릭
+            comment_box = page.locator("div.dooray-flavored-html-editor-content-editable[contenteditable='true']")
+            comment_box.click()
+            # 혹시 기존 내용이 있으면 지우고
+            comment_box.press("Control+A")
+            comment_box.press("Delete")
+            # 댓글 입력
+            comment_box.fill("기본댓글로깅테스트")
 
             # 저장 클릭
             page.get_by_role("button", name="저장").click()
@@ -139,11 +145,16 @@ def test_dooray_pattern_board_comment(request):
             page.get_by_role("link", name="자유게시판").click()
 
             # 가장 위에 게시글 클릭
-            page.get_by_role("gridcell", name="기본로깅테스트 [5]").click()
+            page.locator("div[role='gridcell']").nth(2).click()
 
-            # 댓글창 입력
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("kjkeum@nate.com")
+            # 댓글창 클릭
+            comment_box = page.locator("div.dooray-flavored-html-editor-content-editable[contenteditable='true']")
+            comment_box.click()
+            # 혹시 기존 내용이 있으면 지우고
+            comment_box.press("Control+A")
+            comment_box.press("Delete")
+            # 댓글 입력
+            comment_box.fill("kjkeum@nate.com")
 
             # 저장 클릭
             page.get_by_role("button", name="저장").click()
@@ -189,11 +200,16 @@ def test_dooray_keyword_board_comment(request):
             page.get_by_role("link", name="자유게시판").click()
 
             # 가장 위에 게시글 클릭
-            page.get_by_role("gridcell", name="기본로깅테스트 [6]").click()
+            page.locator("div[role='gridcell']").nth(2).click()
 
-            # 댓글창 입력
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").click()
-            page.locator(".toastui-editor-ww-container > .toastui-editor > .ProseMirror").fill("키워드테스트")
+            # 댓글창 클릭
+            comment_box = page.locator("div.dooray-flavored-html-editor-content-editable[contenteditable='true']")
+            comment_box.click()
+            # 혹시 기존 내용이 있으면 지우고
+            comment_box.press("Control+A")
+            comment_box.press("Delete")
+            # 댓글 입력
+            comment_box.fill("키워드테스트키워드테스트일지매일지매일지매수산아이앤티")
 
             # 저장 클릭
             page.get_by_role("button", name="저장").click()
@@ -239,13 +255,13 @@ def test_dooray_attach_board_comment(request):
             page.get_by_role("link", name="자유게시판").click()
 
             # 가장 위에 게시글 클릭
-            page.get_by_role("gridcell", name="기본로깅테스트 [7]").click()
+            page.locator("div[role='gridcell']").nth(2).click()
 
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
                 page.get_by_role("button", name="첨부").click()
             file_chooser = fc_info.value
-            file_chooser.set_files(r"D:/dlp_new_automation/test_files/pattern.docx")
+            file_chooser.set_files(r"D:/backup/dlp_new_automation/test_files/pattern.docx")
 
             # # 저장 클릭
             # page.get_by_role("button", name="저장").click()

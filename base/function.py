@@ -155,6 +155,52 @@ def assert_es_logs(
         with allure.step(f"[ES] {service_name} hit_index={idx} ({label}) 검증"):
             compare_es_doc_with_expected(src, expected)
 
+def assert_es_logs_with_retry(
+    service_name,
+    test_cases,
+    size=1,
+    max_attempts=3,       # 최대 재시도 횟수
+    interval_sec=5        # 재시도 간격(초)
+):
+    """
+    ES 인덱싱 지연을 고려해 최대 max_attempts 회 재시도하여 검증한다.
+    - 한 번이라도 성공하면 PASS
+    - 모두 실패하면 마지막 에러를 raise
+    """
+    last_err = None
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            print(f"[ES 검증] {attempt}/{max_attempts}차 시도 중...")
+
+            # 기존 ES 검증 로직 호출
+            assert_es_logs(
+                service_name=service_name,
+                test_cases=test_cases,
+                size=size,
+            )
+
+            print(f"[ES 검증] {attempt}회째에 성공")
+            return  # 성공하면 즉시 종료
+
+        except AssertionError as e:
+            last_err = e
+            print(f"[ES 검증 실패] {attempt}/{max_attempts}회 (AssertionError): {e}")
+
+        except requests.RequestException as e:
+            last_err = e
+            print(f"[ES 연결 실패] {attempt}/{max_attempts}회 (RequestException): {e}")
+
+        # 마지막 시도가 아니라면 interval_sec 만큼 기다린 후 재시도
+        if attempt < max_attempts:
+            time.sleep(interval_sec)
+
+    # 3회 모두 실패 → 테스트 실패 처리
+    raise AssertionError(
+        f"ES 검증이 {max_attempts}번 시도 후에도 실패했습니다.\n"
+        f"마지막 에러: {last_err}"
+    )
+
 # def compare_ui_and_values(page, row_index, expected_counts):
 #     """
 #     UI 데이터와 values 를 비교하는 함수

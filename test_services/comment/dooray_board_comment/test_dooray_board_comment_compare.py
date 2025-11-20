@@ -4,7 +4,7 @@ from datetime import datetime
 
 import allure
 import pytest
-from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
+from playwright.sync_api import sync_playwright,TimeoutError
 
 from base.account import (
     DOORAY_BASE_URL,
@@ -12,7 +12,7 @@ from base.account import (
     DOORAY_PASSWORD,
     SERVICE_NAME_DOORAY_BOARD_COMMENT,
 )
-from base.function import search_logs_from_es, assert_es_logs, extract_counts_from_es_source
+from base.function import assert_es_logs, assert_es_logs_with_retry
 
 NORMAL_LOGGING_CASE = [
     {
@@ -146,11 +146,20 @@ def test_dooray_normal_board_comment(request):
             # 5초 대기
             page.wait_for_timeout(5000)
 
-            # ===== 여기서 ES 검증 호출 =====
-            assert_es_logs(
+            # # ===== 여기서 ES 검증 호출 =====
+            # assert_es_logs(
+            #     service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
+            #     test_cases=NORMAL_LOGGING_CASE,
+            #     size=1,
+            # )
+
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
                 service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
                 test_cases=NORMAL_LOGGING_CASE,
                 size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
             )
 
         except Exception as e:
@@ -201,13 +210,22 @@ def test_dooray_pattern_board_comment(request):
             page.get_by_role("button", name="저장").click()
 
             # 3초 대기
-            page.wait_for_timeout(3000)
+            page.wait_for_timeout(5000)
 
-            # ===== 여기서 ES 검증 호출 =====
-            assert_es_logs(
+            # # ===== 여기서 ES 검증 호출 =====
+            # assert_es_logs(
+            #     service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
+            #     test_cases=PATTERN_LOGGING_CASE,
+            #     size=1,
+            # )
+
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
                 service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
                 test_cases=PATTERN_LOGGING_CASE,
                 size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
             )
 
 
@@ -259,13 +277,22 @@ def test_dooray_keyword_board_comment(request):
             page.get_by_role("button", name="저장").click()
 
             # 3초 대기
-            page.wait_for_timeout(3000)
+            page.wait_for_timeout(5000)
 
-            # ===== 여기서 ES 검증 호출 =====
-            assert_es_logs(
+            # # ===== 여기서 ES 검증 호출 =====
+            # assert_es_logs(
+            #     service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
+            #     test_cases=KEYWORD_LOGGING_CASE,
+            #     size=1,
+            # )
+
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
                 service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
                 test_cases=KEYWORD_LOGGING_CASE,
                 size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
             )
 
         except Exception as e:
@@ -324,7 +351,15 @@ def test_dooray_keyword_board_comment(request):
             #     test_cases=FILE_LOGGING_CASE,
             #     size=1,
             # )
-
+            #
+            # # ===== 여기서 ES 검증 반복 호출 =====
+            # assert_es_logs_with_retry(
+            #     service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
+            #     test_cases=FILE_LOGGING_CASE,
+            #     size=1,
+            #     max_attempts=3,  # 총 3번 시도
+            #     interval_sec=5  # 시도 간 5초 대기
+            # )
 #
 #         except Exception as e:
 #             # # 실패 시 스크린샷 경로 설정
@@ -340,22 +375,3 @@ def test_dooray_keyword_board_comment(request):
 #
 #         finally:
 #             browser.close()
-
-
-def test_search_es_logs():
-
-    # 1) ES 조회 시점
-    hits = search_logs_from_es(size=10)
-
-    # 3) 테스트 마지막에 최근 10개 조회 결과 출력 (눈으로 확인용)
-    print("\n====== 최근 ES 로그 10개 (단순 확인용) ======")
-    for i, doc in enumerate(hits):
-        src = doc["_source"]
-        pat, key, fcnt = extract_counts_from_es_source(src)
-        print(
-            f"[{i}] timestamp={src.get('@timestamp')} "
-            f"pattern={pat} keyword={key} file={fcnt} "
-            f"Rule={src.get('RuleName')} "
-            f"Service={src.get('ServiceName')}"
-        )
-    print("==========================================\n")

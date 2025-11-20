@@ -1,10 +1,10 @@
 # common/base.py
 from typing import List, Dict
-
 import requests
 import allure
-
 from base.account import ES_URL, ES_INDEX_PATTERN
+import time
+from requests.exceptions import ConnectionError, ReadTimeout
 
 
 def search_logs_from_es(
@@ -13,11 +13,9 @@ def search_logs_from_es(
     es_url: str = ES_URL,
     index_pattern: str = ES_INDEX_PATTERN,
     timeout: int = 10,
+    max_retries: int = 3,          # ✅ 재시도 횟수 추가
+    retry_interval: float = 1.0,   # ✅ 재시도 간격(초)
 ):
-    """
-    주어진 ServiceName 으로 ES(log-*/session)를 검색.
-    최신순(@timestamp desc)으로 size 만큼 가져온다.
-    """
     query = {
         "query": {
             "bool": {
@@ -32,14 +30,32 @@ def search_logs_from_es(
         "size": size
     }
 
-    resp = requests.get(
-        f"{es_url}/{index_pattern}/_search",
-        json=query,
-        timeout=timeout,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    return data["hits"]["hits"]  # 각 hit: {"_index", "_id", "_source", ...}
+    last_exc = None
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            resp = requests.get(
+                f"{es_url}/{index_pattern}/_search",
+                json=query,
+                timeout=timeout,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return data["hits"]["hits"]
+
+        except (ConnectionError, ReadTimeout) as e:
+            last_exc = e
+            print(
+                f"[ES] connection failed (attempt {attempt}/{max_retries}) : {e}"
+            )
+            if attempt < max_retries:
+                time.sleep(retry_interval)
+            else:
+                # 재시도 다 써도 안되면 그대로 예외 발생
+                raise
+
+    # 논리상 여기까지 오지는 않지만, 타입 힌트 만족용
+    raise last_exc
 
 
 def extract_counts_from_es_source(src: dict):

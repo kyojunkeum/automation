@@ -12,7 +12,7 @@ from base.account import (
     DOORAY_PASSWORD,
     SERVICE_NAME_DOORAY_BOARD_COMMENT,
 )
-from base.function import assert_es_logs
+from base.function import search_logs_from_es, assert_es_logs, extract_counts_from_es_source
 
 NORMAL_LOGGING_CASE = [
     {
@@ -143,8 +143,8 @@ def test_dooray_normal_board_comment(request):
             # 저장 클릭
             page.get_by_role("button", name="저장").click()
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 5초 대기
+            page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 호출 =====
             assert_es_logs(
@@ -340,3 +340,22 @@ def test_dooray_keyword_board_comment(request):
 #
 #         finally:
 #             browser.close()
+
+
+def test_search_es_logs():
+
+    # 1) ES 조회 시점
+    hits = search_logs_from_es(size=10)
+
+    # 3) 테스트 마지막에 최근 10개 조회 결과 출력 (눈으로 확인용)
+    print("\n====== 최근 ES 로그 10개 (단순 확인용) ======")
+    for i, doc in enumerate(hits):
+        src = doc["_source"]
+        pat, key, fcnt = extract_counts_from_es_source(src)
+        print(
+            f"[{i}] timestamp={src.get('@timestamp')} "
+            f"pattern={pat} keyword={key} file={fcnt} "
+            f"Rule={src.get('RuleName')} "
+            f"Service={src.get('ServiceName')}"
+        )
+    print("==========================================\n")

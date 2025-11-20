@@ -99,7 +99,8 @@ def compare_es_doc_with_expected(src: dict, expected: Dict[str, str]):
 def assert_es_logs(
     service_name: str,
     test_cases: List[Dict],
-    size: int = 1,
+    size: int | None = None,   # ← 기본값 None 으로 변경
+    # size: int = 1, # 1개만 볼 때
 ):
     """
     공통 ES 검증 진입점.

@@ -96,11 +96,11 @@ def test_dooray_login():
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_nate_login")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_login")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
@@ -155,11 +155,11 @@ def test_dooray_normal_board_comment(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_nate_normal_send")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_board_comment_normal_send")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="nate_normal_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_board_comment_normal_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -213,11 +213,11 @@ def test_dooray_pattern_board_comment(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_nate_pattern_send")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_board_comment__pattern_send")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="nate_pattern_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_board_comment_pattern_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -270,11 +270,11 @@ def test_dooray_keyword_board_comment(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_nate_keyword_send")
+            screenshot_path = get_screenshot_path("test_dooray_board_comment_keyword_send")
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="nate_keyword_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_board_comment_keyword_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -328,11 +328,11 @@ def test_dooray_keyword_board_comment(request):
 #
 #         except Exception as e:
 #             # # 실패 시 스크린샷 경로 설정
-#             # screenshot_path = get_screenshot_path("test_nate_attach_send")  # 공통 함수 호출
+#             # screenshot_path = get_screenshot_path("test_dooray_board_comment_attach_send")  # 공통 함수 호출
 #             # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
 #             # # page.screenshot(path=screenshot_path, full_page=True)
 #             # print(f"Screenshot taken at : {screenshot_path}")
-#             # allure.attach.file(screenshot_path, name="nate_attach_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+#             # allure.attach.file(screenshot_path, name="dooray_board_comment_attach_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 #
 #             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
 #             pytest.fail(f"Test failed: {str(e)}")

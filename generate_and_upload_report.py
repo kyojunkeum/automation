@@ -3,6 +3,7 @@ import sys
 import os
 import paramiko
 import time
+import shutil
 
 
 def run_tests_and_generate_report():
@@ -32,6 +33,11 @@ def run_tests_and_generate_report():
             # subprocess.run(["pytest", "-v", f"--alluredir={result_dir}"], check=False, env=env)
 
         # 2. Allure 리포트 생성 및 병합
+        if os.path.exists("allure-results"):
+            shutil.rmtree("allure-results")
+        if os.path.exists("allure-report"):
+            shutil.rmtree("allure-report")
+
         print("Allure 리포트를 생성합니다...")
         result_dirs = [f"{results_dir}/run_{i}" for i in range(1, 50)]
         generate_command = ["C:\\allure\\allure-2.32.0\\bin\\allure.bat", "generate", "--clean", "-o", "allure-report"]
@@ -105,7 +111,12 @@ def upload_report():
         # SFTP 세션 생성
         sftp = ssh.open_sftp()
         local_path = "allure-report"  # 로컬 Allure 리포트 폴더
-        remote_path = "/var/www/html/allure-report"  # 원격 서버 경로
+
+
+        # 타임스탬프 기반 하위 디렉토리 생성 (예: 2025-11-20_101530)
+        timestamp = time.strftime("%Y-%m-%d_%H%M%S")
+        base_remote_path = "/var/www/html/allure-report"
+        remote_path = f"{base_remote_path}/{timestamp}"
 
         # 리포트 폴더의 파일들 전송
         for root, dirs, files in os.walk(local_path):
@@ -114,7 +125,6 @@ def upload_report():
                 relative_path = os.path.relpath(local_file, local_path)
                 remote_file = os.path.join(remote_path, relative_path).replace("\\", "/")
 
-                # 원격 경로에 폴더가 없으면 생성
                 ensure_remote_directory_exists(sftp, os.path.dirname(remote_file))
                 sftp.put(local_file, remote_file)
                 print(f"{local_file} -> {remote_file} 전송 완료")

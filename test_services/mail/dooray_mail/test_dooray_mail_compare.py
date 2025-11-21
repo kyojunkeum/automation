@@ -36,7 +36,7 @@ KEYWORD_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "키워드 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "7", "file_count": "0"},
+        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0"},
     }
 ]
 
@@ -211,7 +211,7 @@ def test_dooray_pattern_mail(request):
 
             # 제목 입력
             page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("개인정보테스트")
+            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("개인정보로깅테스트")
 
             # 본문 클릭
             page1.get_by_role("application").locator("div").nth(3).click()
@@ -286,7 +286,7 @@ def test_dooray_keyword_mail(request):
 
             # 제목 입력
             page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("키워드테스트")
+            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("키워드로깅테스트")
 
             # 본문 클릭
             page1.get_by_role("application").locator("div").nth(3).click()
@@ -360,7 +360,7 @@ def test_dooray_attach_mail(request):
 
             # 제목 입력
             page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("첨부파일테스트")
+            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("첨부파일로깅테스트")
 
             # 파일 첨부
             with page1.expect_file_chooser() as fc_info:

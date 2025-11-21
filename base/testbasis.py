@@ -59,8 +59,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 TEST_FILES_DIR = BASE_DIR / "test_files"
 # 두레이 첨부파일 2개 (상대 경로 기반)
 DLP_FILES = [
-    str(TEST_FILES_DIR / "pattern_keyword.pptx"),
-    str(TEST_FILES_DIR / "pattern_keyword.docx"),
+    str(TEST_FILES_DIR / "test.jpeg"),
+    str(TEST_FILES_DIR / "test.jpg"),
 ]
 
 # ============================

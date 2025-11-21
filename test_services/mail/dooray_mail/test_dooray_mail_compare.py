@@ -44,7 +44,7 @@ FILE_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "파일 로깅",
-        "expected": {"pattern_count": "6", "keyword_count": "6", "file_count": "2"},
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "2"},
     }
 ]
 

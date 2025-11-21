@@ -2,7 +2,7 @@
 from typing import List, Dict
 import requests
 import allure
-from base.account import ES_URL, ES_INDEX_PATTERN
+from base.testbasis import ES_URL, ES_INDEX_PATTERN
 import time
 from requests.exceptions import ConnectionError, ReadTimeout
 

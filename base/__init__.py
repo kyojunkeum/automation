@@ -1,5 +1,5 @@
 # base/__init__.py
-from .account import (
+from .testbasis import (
     DOORAY_BASE_URL,
     DOORAY_ID,
     DOORAY_PASSWORD,

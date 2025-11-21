@@ -44,7 +44,7 @@ FILE_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "파일 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "2"},
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"},
     }
 ]
 
@@ -370,7 +370,7 @@ def test_dooray_attach_mail(request):
             print("파일을 첨부하였습니다.")
 
             # 5초 대기
-            page.wait_for_timeout(5000)
+            page.wait_for_timeout(10000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(

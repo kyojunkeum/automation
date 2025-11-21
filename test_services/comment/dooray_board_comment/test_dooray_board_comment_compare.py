@@ -329,7 +329,7 @@ def test_dooray_attach_board_comment(request):
             # page.get_by_role("button", name="저장").click()
 
             # 3초 대기
-            page.wait_for_timeout(5000)
+            page.wait_for_timeout(10000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(

@@ -293,7 +293,7 @@ def test_dooray_keyword_board_comment(request):
 
 @allure.severity(allure.severity_level.BLOCKER)
 @allure.step("Dooray board comment attach Test")
-def stest_dooray_attach_board_comment(request):
+def test_dooray_attach_board_comment(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")

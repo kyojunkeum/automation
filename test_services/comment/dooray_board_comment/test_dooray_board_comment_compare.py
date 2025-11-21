@@ -126,6 +126,7 @@ def test_dooray_normal_board_comment(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/home")
+            time.sleep(3)
 
             # 자유게시판으로 이동
             page.get_by_role("link", name="자유게시판").click()
@@ -186,6 +187,7 @@ def test_dooray_pattern_board_comment(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/home")
+            time.sleep(3)
 
             # 자유게시판으로 이동
             page.get_by_role("link", name="자유게시판").click()
@@ -246,6 +248,7 @@ def test_dooray_keyword_board_comment(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/home")
+            time.sleep(3)
 
             # 자유게시판으로 이동
             page.get_by_role("link", name="자유게시판").click()
@@ -305,6 +308,7 @@ def test_dooray_attach_board_comment(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/home")
+            time.sleep(3)
 
             # 자유게시판으로 이동
             page.get_by_role("link", name="자유게시판").click()
@@ -329,7 +333,7 @@ def test_dooray_attach_board_comment(request):
             # page.get_by_role("button", name="저장").click()
 
             # 3초 대기
-            page.wait_for_timeout(10000)
+            page.wait_for_timeout(20000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(

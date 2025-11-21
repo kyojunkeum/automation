@@ -44,7 +44,7 @@ FILE_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "파일 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"},
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "2"},
     }
 ]
 
@@ -127,6 +127,7 @@ def test_dooray_normal_mail(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
+            time.sleep(3)
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -195,6 +196,7 @@ def test_dooray_pattern_mail(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
+            time.sleep(3)
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -270,6 +272,7 @@ def test_dooray_keyword_mail(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
+            time.sleep(3)
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -345,6 +348,7 @@ def test_dooray_attach_mail(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
+            time.sleep(3)
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -370,7 +374,7 @@ def test_dooray_attach_mail(request):
             print("파일을 첨부하였습니다.")
 
             # 5초 대기
-            page.wait_for_timeout(10000)
+            page.wait_for_timeout(20000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(

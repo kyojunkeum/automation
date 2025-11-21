@@ -29,7 +29,7 @@ PATTERN_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "패턴 로깅",
-        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "0"},
+        "expected": {"pattern_count": "15", "keyword_count": "0", "file_count": "0"},
     }
 ]
 
@@ -149,13 +149,6 @@ def test_dooray_normal_board_comment(request):
             # 5초 대기
             page.wait_for_timeout(5000)
 
-            # # ===== 여기서 ES 검증 호출 =====
-            # assert_es_logs(
-            #     service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
-            #     test_cases=NORMAL_LOGGING_CASE,
-            #     size=1,
-            # )
-
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
                 service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
@@ -214,13 +207,6 @@ def test_dooray_pattern_board_comment(request):
 
             # 3초 대기
             page.wait_for_timeout(5000)
-
-            # # ===== 여기서 ES 검증 호출 =====
-            # assert_es_logs(
-            #     service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
-            #     test_cases=PATTERN_LOGGING_CASE,
-            #     size=1,
-            # )
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
@@ -282,13 +268,6 @@ def test_dooray_keyword_board_comment(request):
             # 3초 대기
             page.wait_for_timeout(5000)
 
-            # # ===== 여기서 ES 검증 호출 =====
-            # assert_es_logs(
-            #     service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
-            #     test_cases=KEYWORD_LOGGING_CASE,
-            #     size=1,
-            # )
-
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
                 service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
@@ -346,19 +325,11 @@ def stest_dooray_attach_board_comment(request):
             # 수정: 요소화 + 여러 파일(2개) 첨부
             file_chooser.set_files(DLP_FILES)
 
-
             # # 저장 클릭
             # page.get_by_role("button", name="저장").click()
 
             # 3초 대기
             page.wait_for_timeout(5000)
-
-            # # ===== 여기서 ES 검증 호출 =====
-            # assert_es_logs(
-            #     service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
-            #     test_cases=FILE_LOGGING_CASE,
-            #     size=1,
-            # )
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(

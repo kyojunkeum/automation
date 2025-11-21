@@ -6,7 +6,11 @@ import time
 import shutil
 import json
 import stat  # 디렉터리 여부 판별용
-
+from base.testbasis import (
+    ALLURE_IP,
+    ALLURE_ID,
+    ALLURE_PASSWORD,
+)
 
 # ---- 작업 디렉토리 고정 (어디서 실행해도 dlp_new_automation 기준이 되도록) ----
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -226,9 +230,9 @@ def build_index_html(sftp, base_remote_path="/var/www/html/allure-report"):
 
 
 def upload_report():
-    hostname = "172.16.150.138"
-    username = "root"
-    password = "dkswjswmd138*"  # 비밀번호를 필요에 따라 입력
+    hostname = ALLURE_IP
+    username = ALLURE_ID
+    password = ALLURE_PASSWORD
 
     # SSH 클라이언트 설정
     ssh = paramiko.SSHClient()

@@ -1,10 +1,52 @@
 import os
 import time
 from datetime import datetime
-
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
+from base.testbasis import (
+    DOORAY_BASE_URL,
+    DOORAY_ID,
+    DOORAY_PASSWORD,
+    DLP_PATTERNS,
+    DLP_KEYWORDS,
+    DLP_FILES,
+    SERVICE_NAME_DOORAY_MAIL,
+    EMAIL_RECEIVER,
+)
+from base.function import assert_es_logs, assert_es_logs_with_retry
+
+NORMAL_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "기본 로깅",
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"},
+    }
+]
+
+PATTERN_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "패턴 로깅",
+        "expected": {"pattern_count": "15", "keyword_count": "0", "file_count": "0"},
+    }
+]
+
+KEYWORD_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "키워드 로깅",
+        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0"},
+    }
+]
+
+FILE_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "파일 로깅",
+        "expected": {"pattern_count": "3", "keyword_count": "3", "file_count": "2"},
+    }
+]
 
 def get_screenshot_path(test_name):
     screenshot_dir = os.path.join(os.getcwd(), "report", "screenshots")
@@ -38,24 +80,17 @@ def test_dooray_login():
 
         try:
             # 두레이 홈페이지 진입
-            page.goto("https://ewalkerdlp.dooray.com/")
+            page.goto(f"{DOORAY_BASE_URL}/")
             time.sleep(1)
 
             # 아이디 및 패스워드 입력
             page.get_by_placeholder("아이디").click()
-            page.get_by_placeholder("아이디").fill("dlptest1")
+            page.get_by_placeholder("아이디").fill(DOORAY_ID)
             page.get_by_placeholder("비밀번호").click()
-            page.get_by_placeholder("비밀번호").fill("S@@san_1004!")
+            page.get_by_placeholder("비밀번호").fill(DOORAY_PASSWORD)
             time.sleep(1)
             page.get_by_role("button", name="로그인").click()
             time.sleep(3)
-
-            # # 로그인 성공 여부 확인
-            # page.get_by_test_id("MyLoginProfileLayer").locator("img").click()
-            # page.locator("#tippy-7").get_by_text("dlptest1").click()
-            # page.wait_for_selector("role=link[name='dlptest1']", timeout=3000)
-            # assert page.get_by_role("link", name="dlptest1").is_visible() == True, "login failed. can't find the profile."
-            # time.sleep(2)
 
             # 세션 상태 저장
             os.makedirs("session", exist_ok=True)
@@ -63,13 +98,13 @@ def test_dooray_login():
             context.storage_state(path=session_path)
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_login")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_dooray_login")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="dooray_login_failure_screenshot",
+                               attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -91,7 +126,7 @@ def test_dooray_normal_mail(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/mail/systems/inbox")
+            page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -101,8 +136,8 @@ def test_dooray_normal_mail(request):
 
             # 수신자 입력
             page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill("soosan_kjkeum@nate.com")
-            page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill(EMAIL_RECEIVER)
+            page1.wait_for_timeout(3000)  # 입력 후 잠시 대기
             print("수신자 정보를 입력하였습니다.")
 
             # 제목 입력
@@ -119,22 +154,25 @@ def test_dooray_normal_mail(request):
             time.sleep(1)
             page1.get_by_test_id("MailWritePreviewModal_ContainedButton").click()
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 5초 대기
+            page.wait_for_timeout(5000)
 
-            # # 보내기 성공 여부 확인
-            # page.locator("p").filter(has_text="메일이 성공적으로 발송되었습니다").click()
-            # page.wait_for_selector("has_text=메일이 성공적으로 발송되었습니다", timeout=3000)
-            # assert page.locator("has_text=메일이 성공적으로 발송되었습니다").is_visible() == True, "failed to send."
-            # page.wait_for_timeout(2000)  # 2초 대기 (time.sleep 대신 사용)
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
+                service_name=SERVICE_NAME_DOORAY_MAIL,
+                test_cases=NORMAL_LOGGING_CASE,
+                size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
+            )
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_normal_send")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="nate_normal_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_dooray_mail_normal_send")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="dooray_mail_normal_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -156,7 +194,7 @@ def test_dooray_pattern_mail(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/mail/systems/inbox")
+            page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -166,7 +204,7 @@ def test_dooray_pattern_mail(request):
 
             # 수신자 입력
             page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill("soosan_kjkeum@nate.com")
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill(EMAIL_RECEIVER)
             page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
             print("수신자 정보를 입력하였습니다.")
 
@@ -175,9 +213,15 @@ def test_dooray_pattern_mail(request):
             page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
             page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("개인정보테스트")
 
-            # 본문 입력
+            # 본문 클릭
             page1.get_by_role("application").locator("div").nth(3).click()
-            page1.get_by_role("application").locator("div").nth(1).fill("kjkeum@nate.com\n\n")
+
+            # 기존 내용 모두 삭제
+            target_box = page1.get_by_role("application").locator("div").nth(1)
+            target_box.click()
+
+            # 패턴 리스트 여러 개를 줄바꿈으로 입력
+            target_box.fill("\n".join(DLP_PATTERNS))
             time.sleep(1)
 
             # 보내기 클릭
@@ -185,21 +229,25 @@ def test_dooray_pattern_mail(request):
             time.sleep(1)
             page1.get_by_test_id("MailWritePreviewModal_ContainedButton").click()
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 5초 대기
+            page.wait_for_timeout(5000)
 
-            # # 보내기 성공 여부 확인
-            # page.wait_for_selector("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요", timeout=3000)
-            # assert page.locator("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요").is_visible() == True, "failed to block."
-            # page.wait_for_timeout(2000)  # 2초 대기 (time.sleep 대신 사용)
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
+                service_name=SERVICE_NAME_DOORAY_MAIL,
+                test_cases=PATTERN_LOGGING_CASE,
+                size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
+            )
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_pattern_send")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="nate_pattern_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_dooray_mail_pattern_send")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="dooray_mail_pattern_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -221,7 +269,7 @@ def test_dooray_keyword_mail(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/mail/systems/inbox")
+            page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -231,7 +279,7 @@ def test_dooray_keyword_mail(request):
 
             # 수신자 입력
             page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill("soosan_kjkeum@nate.com")
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill(EMAIL_RECEIVER)
             page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
             print("수신자 정보를 입력하였습니다.")
 
@@ -240,9 +288,15 @@ def test_dooray_keyword_mail(request):
             page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
             page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("키워드테스트")
 
-            # 본문 입력
+            # 본문 클릭
             page1.get_by_role("application").locator("div").nth(3).click()
-            page1.get_by_role("application").locator("div").nth(1).fill("키워드테스트\n\n")
+
+            # 기존 내용 모두 삭제
+            target_box = page1.get_by_role("application").locator("div").nth(1)
+            target_box.click()
+
+            # 패턴 리스트 여러 개를 줄바꿈으로 입력
+            target_box.fill("\n".join(DLP_KEYWORDS))
             time.sleep(1)
 
             # 보내기 클릭
@@ -250,21 +304,25 @@ def test_dooray_keyword_mail(request):
             time.sleep(1)
             page1.get_by_test_id("MailWritePreviewModal_ContainedButton").click()
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 5초 대기
+            page.wait_for_timeout(5000)
 
-            # # 보내기 성공 여부 확인
-            # page.wait_for_selector("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요", timeout=3000)
-            # assert page.locator("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요").is_visible() == True, "failed to block."
-            # page.wait_for_timeout(2000)  # 2초 대기
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
+                service_name=SERVICE_NAME_DOORAY_MAIL,
+                test_cases=KEYWORD_LOGGING_CASE,
+                size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
+            )
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_keyword_send")
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="nate_keyword_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_dooray_mail_keyword_send")
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="dooray_mail_keyword_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -286,7 +344,7 @@ def test_dooray_attach_mail(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://ewalkerdlp.dooray.com/mail/systems/inbox")
+            page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -296,10 +354,9 @@ def test_dooray_attach_mail(request):
 
             # 수신자 입력
             page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill("soosan_kjkeum@nate.com")
+            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill(EMAIL_RECEIVER)
             page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
             print("수신자 정보를 입력하였습니다.")
-
 
             # 제목 입력
             page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
@@ -308,30 +365,29 @@ def test_dooray_attach_mail(request):
             # 파일 첨부
             with page1.expect_file_chooser() as fc_info:
                 page1.get_by_test_id("MailWriteHeader_GhostButton").click()
-
             file_chooser = fc_info.value
-            file_chooser.set_files([r"D:/dlp_new_automation/test_files/pattern.docx",
-                                    r"D:/dlp_new_automation/test_files/keyword_test.docx",
-                                    r"D:/dlp_new_automation/test_files/request.txt",
-                                    r"D:dlp_new_automation/test_files/test.jpg"])
-
+            file_chooser.set_files(DLP_FILES)
             print("파일을 첨부하였습니다.")
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 5초 대기
+            page.wait_for_timeout(5000)
 
-            # # 보내기 성공 여부 확인
-            # page.wait_for_selector("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요", timeout=3000)
-            # assert page.locator("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요").is_visible() == True, "failed to block."
-            # page.wait_for_timeout(2000)  # 2초 대기
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
+                service_name=SERVICE_NAME_DOORAY_MAIL,
+                test_cases=FILE_LOGGING_CASE,
+                size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
+            )
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_attach_send")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="nate_attach_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_dooray_mail_attach_send")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="dooray_mail_attach_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -340,103 +396,5 @@ def test_dooray_attach_mail(request):
         finally:
             browser.close()
 
-def compare_ui_and_values(page, row_index, expected_counts):
-    """
-    UI 데이터와 values 를 비교하는 함수
-    :param page: Playwright Page 객체
-    :param row_index: 비교할 행 번호 (1부터 시작)
-    :param expected_counts: 딕셔너리 형태의 기대 값
-    """
-    row_selector = f"table tr:nth-child({row_index})"
-    ui_pattern_count = page.locator(f"{row_selector} td:nth-child(11)").text_content().strip()
-    ui_keyword_count = page.locator(f"{row_selector} td:nth-child(12)").text_content().strip()
-    ui_file_count = page.locator(f"{row_selector} td:nth-child(13)").text_content().strip()
-
-    assert expected_counts["pattern_count"] == ui_pattern_count, \
-        f"패턴 검출수 불일치: 기대값({expected_counts['pattern_count']}) != UI({ui_pattern_count})"
-    assert expected_counts["keyword_count"] == ui_keyword_count, \
-        f"키워드 검출수 불일치: 기대값({expected_counts['keyword_count']}) != UI({ui_keyword_count})"
-    assert expected_counts["file_count"] == ui_file_count, \
-        f"파일 개수 불일치: 기대값({expected_counts['file_count']}) != UI({ui_file_count})"
-
-@pytest.mark.dependency(
-  depends=[
-    "dooray_login",
-    "dooray_normal_mail",
-    "dooray_pattern_mail",
-    "dooray_keyword_mail",
-    "dooray_attach_mail"
-  ]
-)
-
-@allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray mail Dlp Logging check")
-def test_compare_result_dooray_mail():
-    with sync_playwright() as p:
-        # 브라우저 실행
-        browser = p.chromium.launch(headless=False)
-
-        # BrowserContext 생성 (HTTPS 오류 무시 설정)
-        context = browser.new_context(ignore_https_errors=True)
-
-        # Context에서 새로운 페이지 생성
-        page = context.new_page()
-
-        try:
-
-            # DLP 서비스 로그인
-            page.goto("https://172.16.150.187:8443/login")  # DLP 제품 URL
-            page.fill("input[name='j_username']", "intsoosan")
-            page.fill("input[name='j_password']", "dkswjswmd4071*")
-            page.get_by_role("button", name="로그인").click()
-            time.sleep(2)
-
-            # 알림 팝업 처리
-            click_confirm_if_popup_exists(page, timeout=5000)
-
-            # 서비스 로그 페이지로 이동
-            page.goto("https://172.16.150.187:8443/log/service")
-
-            # 상세 검색
-            page.get_by_role("link", name="상세검색").click()
-            time.sleep(1)
-            # 서비스 선택
-            page.locator("#selectedDetail").select_option("service")
-            # 두레이게시판 선택
-            page.locator("#tokenfield2-tokenfield").click()
-            page.get_by_text("[웹메일] 두레이 메일").click()
-            # 검색 클릭
-            page.get_by_role("button", name="검색").click()
-            time.sleep(5)
-
-            # 딕셔너리 기댓값과 UI 데이터를 비교
-            test_cases = [
-                {"row_index": 7, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"}},  # 일반 로깅
-                {"row_index": 5, "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"}},  # 개인정보 로깅
-                {"row_index": 3, "expected": {"pattern_count": "0", "keyword_count": "2", "file_count": "0"}},  # 키워드 로깅
-                {"row_index": 1, "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "1"}},  # 첨부파일 로깅
-            ]
-
-            for case in test_cases:
-                compare_ui_and_values(page, case["row_index"], case["expected"])
-
-            print("모든 값이 일치합니다.")
-
-
-        except Exception as e:
-
-            # 실패 시 스크린샷 저장
-            # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_mail")  # 공통 함수 호출
-            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # page.screenshot(path=screenshot_path, full_page=True)
-            print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_mail_failure_screenshot",
-                               attachment_type=allure.attachment_type.JPG)
-
-            raise
-
-        finally:
-            browser.close()
 
 

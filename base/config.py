@@ -25,6 +25,12 @@ DUT_MAPPING = {
 # 기본값 지정
 DUT_IP = DUT_MAPPING.get(HOST_IP, "172.16.150.187")
 
+# 콘솔에 IP 정보 출력
+print("=" * 60)
+print(f"[INFO] Test Execution Host IP : {HOST_IP}")
+print(f"[INFO] Selected DUT IP        : {DUT_IP}")
+print("=" * 60)
+
 # ============================
 # DUT 기반 URL 정의 - DLP 제품 접속 URL
 # ============================

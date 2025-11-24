@@ -37,6 +37,21 @@ def run_tests_and_generate_report():
                 print(f"{i}번째 테스트에서 오류 발생(returncode={proc.returncode}). 반복을 중단합니다.")
                 break
 
+        # ===============================================================
+        # 1) environment.properties 를 모든 run_x 디렉토리로 복사
+        # ===============================================================
+
+        env_file_src = f"{results_dir}/environment.properties"
+
+        if os.path.exists(env_file_src):
+            for d in os.listdir(results_dir):
+                run_dir = os.path.join(results_dir, d)
+                if os.path.isdir(run_dir) and d.startswith("run_"):
+                    shutil.copy(env_file_src, os.path.join(run_dir, "environment.properties"))
+                    print(f"[INFO] 환경파일 복사: {env_file_src} → {run_dir}")
+        else:
+            print("[WARN] environment.properties 가 생성되지 않았습니다.")
+
         # 2. Allure 리포트 생성 및 병합
         # ❗ allure-results 는 지우면 안 됨 (여기에 테스트 결과가 들어있음)
         if os.path.exists("allure-report"):

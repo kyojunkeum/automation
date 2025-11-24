@@ -73,7 +73,7 @@ SERVICE_NAMES_DOORAY_BOARD_COMMENT = [
     SERVICE_NAME_DOORAY_BOARD_COMMENT_EN,
 ]
 SERVICE_NAME_DOORAY_MAIL_KO = "두레이 메일"
-SERVICE_NAME_DOORAY_MAIL_EN = "두레이 메일"
+SERVICE_NAME_DOORAY_MAIL_EN = "Dooray"
 SERVICE_NAMES_DOORAY_MAIL = [
     SERVICE_NAME_DOORAY_MAIL_KO,
     SERVICE_NAME_DOORAY_MAIL_EN,
@@ -84,6 +84,14 @@ SERVICE_NAMES_DOORAY_CALENDAR = [
     SERVICE_NAME_DOORAY_CALENDAR_KO,
     SERVICE_NAME_DOORAY_CALENDAR_EN,
 ]
+
+SERVICE_NAME_DOORAY_DRIVE_KO = "두레이 드라이브"
+SERVICE_NAME_DOORAY_DRIVE_EN = "Doorey Drive"
+SERVICE_NAMES_DOORAY_DRIVE = [
+    SERVICE_NAME_DOORAY_DRIVE_KO,
+    SERVICE_NAME_DOORAY_DRIVE_EN,
+]
+
 
 # 나중에 다른 서비스도 추가 가능
 # SERVICE_NAME_NATE_MAIL = "네이트 메일"
@@ -131,10 +139,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # dlp_new_automation/test_files
 TEST_FILES_DIR = BASE_DIR / "test_files"
 
-# 두레이 첨부파일 1개 (상대 경로 기반)
+# 두레이 첨부파일 1개 일반 (상대 경로 기반)
 DLP_FILE = [
     str(TEST_FILES_DIR / "test.jpeg"),
 ]
+
+DLP_FILE_PATTERN = [
+    str(TEST_FILES_DIR / "pattern.docx")
+]
+
+DLP_FILE_KEYWORD = [
+    str(TEST_FILES_DIR / "keyword_test.docx")
+]
+
+DLP_FILE_MIX = [
+    str(TEST_FILES_DIR / "pattern_keyword.pptx")
+]
+
 
 # 두레이 첨부파일 2개 (상대 경로 기반)
 DLP_FILES = [

@@ -4,18 +4,8 @@ from datetime import datetime
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
-from base.testbasis import (
-    DOORAY_BASE_URL,
-    DOORAY_ID,
-    DOORAY_PASSWORD,
-    DLP_PATTERNS,
-    DLP_KEYWORDS,
-    DLP_FILE,
-    DLP_FILES,
-    SERVICE_NAME_DOORAY_MAIL,
-    EMAIL_RECEIVER,
-)
-from base.function import assert_es_logs, assert_es_logs_with_retry
+from base import *
+
 
 NORMAL_LOGGING_CASE = [
     {
@@ -115,8 +105,8 @@ def test_dooray_login():
 
 @allure.severity(allure.severity_level.NORMAL)
 @allure.step("Dooray mail Normal Test")
-@pytest.mark.dependency(name="dooray_normal_mail")
-def test_dooray_normal_mail(request):
+@pytest.mark.dependency(name="dooray_mail_normal")
+def test_dooray_mail_normal(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -184,8 +174,8 @@ def test_dooray_normal_mail(request):
 
 @allure.severity(allure.severity_level.CRITICAL)
 @allure.step("Dooray mail Pattern Test")
-@pytest.mark.dependency(name="dooray_pattern_mail")
-def test_dooray_pattern_mail(request):
+@pytest.mark.dependency(name="dooray_mail_pattern")
+def test_dooray_mail_pattern(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -260,8 +250,8 @@ def test_dooray_pattern_mail(request):
 
 @allure.severity(allure.severity_level.CRITICAL)
 @allure.step("Dooray mail Keyword Test")
-@pytest.mark.dependency(name="dooray_keyword_mail")
-def test_dooray_keyword_mail(request):
+@pytest.mark.dependency(name="dooray_mail_keyword")
+def test_dooray_mail_keyword(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -336,8 +326,8 @@ def test_dooray_keyword_mail(request):
 
 @allure.severity(allure.severity_level.BLOCKER)
 @allure.step("Dooray mail attach Test")
-@pytest.mark.dependency(name="dooray_attach_mail")
-def test_dooray_attach_mail(request):
+@pytest.mark.dependency(name="dooray_mail_attach")
+def test_dooray_mail_attach(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")

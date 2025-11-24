@@ -1,22 +1,11 @@
 import os
 import time
 from datetime import datetime
-
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,TimeoutError
+from base import *
 
-from base.testbasis import (
-    DOORAY_BASE_URL,
-    DOORAY_ID,
-    DOORAY_PASSWORD,
-    DLP_PATTERNS,
-    DLP_KEYWORDS,
-    DLP_FILE,
-    DLP_FILES,
-    SERVICE_NAME_DOORAY_BOARD_COMMENT,
-)
-from base.function import assert_es_logs, assert_es_logs_with_retry
 
 NORMAL_LOGGING_CASE = [
     {
@@ -115,7 +104,7 @@ def test_dooray_login():
 
 @allure.severity(allure.severity_level.NORMAL)
 @allure.step("Dooray board Comment normal Test")
-def test_dooray_normal_board_comment(request):
+def test_dooray_board_comment_normal(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -125,7 +114,7 @@ def test_dooray_normal_board_comment(request):
 
         try:
 
-            # 세션 유지한 채로 메일 페이지로 이동
+            # 세션 유지한 채로 게시판 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/home")
             time.sleep(3)
 
@@ -134,7 +123,7 @@ def test_dooray_normal_board_comment(request):
 
             # 가장 위에 게시글 클릭
             page.locator("div[role='gridcell']").nth(2).click()
-            # page.get_by_role("gridcell", name="기본로깅테스트 [4]").click()
+
 
             # 댓글창 클릭
             comment_box = page.locator("div.dooray-flavored-html-editor-content-editable[contenteditable='true']")
@@ -144,11 +133,12 @@ def test_dooray_normal_board_comment(request):
             comment_box.press("Delete")
             # 댓글 입력
             comment_box.fill("기본댓글로깅테스트")
+            time.sleep(1)
 
             # 저장 클릭
             page.get_by_role("button", name="저장").click()
 
-            # 5초 대기
+            # 대기
             page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
@@ -162,11 +152,11 @@ def test_dooray_normal_board_comment(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_board_comment_normal_send")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_board_comment_normal")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_board_comment_normal_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_board_comment_normal_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -176,7 +166,7 @@ def test_dooray_normal_board_comment(request):
 
 @allure.severity(allure.severity_level.CRITICAL)
 @allure.step("Dooray board comment Pattern Test")
-def test_dooray_pattern_board_comment(request):
+def test_dooray_board_comment_pattern(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -208,7 +198,7 @@ def test_dooray_pattern_board_comment(request):
             # 저장 클릭
             page.get_by_role("button", name="저장").click()
 
-            # 3초 대기
+            # 대기
             page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
@@ -223,11 +213,11 @@ def test_dooray_pattern_board_comment(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_board_comment__pattern_send")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_board_comment__pattern")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_board_comment_pattern_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_board_comment_pattern_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -237,7 +227,7 @@ def test_dooray_pattern_board_comment(request):
 
 @allure.severity(allure.severity_level.CRITICAL)
 @allure.step("Dooray board comment Keyword Send Test")
-def test_dooray_keyword_board_comment(request):
+def test_dooray_board_comment_keyword(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -283,11 +273,11 @@ def test_dooray_keyword_board_comment(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_board_comment_keyword_send")
+            screenshot_path = get_screenshot_path("test_dooray_board_comment_keyword")
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_board_comment_keyword_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_board_comment_keywordd_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -297,7 +287,7 @@ def test_dooray_keyword_board_comment(request):
 
 @allure.severity(allure.severity_level.BLOCKER)
 @allure.step("Dooray board comment attach Test")
-def test_dooray_attach_board_comment(request):
+def test_dooray_board_comment_attach(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -333,12 +323,12 @@ def test_dooray_attach_board_comment(request):
             # # 저장 클릭
             # page.get_by_role("button", name="저장").click()
 
-            # 3초 대기
+            # 대기
             page.wait_for_timeout(10000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
+                service_name=SERVICE_NAME_DOORAY_BOARD,
                 test_cases=FILE_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -346,12 +336,12 @@ def test_dooray_attach_board_comment(request):
             )
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_dooray_board_comment_attach_send")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="dooray_board_comment_attach_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_dooray_board_comment_attach")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="dooray_board_comment_attach_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")

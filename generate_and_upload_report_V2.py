@@ -6,13 +6,7 @@ import time
 import shutil
 import json
 import stat  # 디렉터리 여부 판별용
-from base.account import (
-    ALLURE_ID,
-    ALLURE_PASSWORD,
-)
-from base.config import (
-    ALLURE_IP,
-)
+from base import *
 
 # ---- 작업 디렉토리 고정 (어디서 실행해도 dlp_new_automation 기준이 되도록) ----
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

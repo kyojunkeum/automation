@@ -1,6 +1,5 @@
 import os
 import time
-from datetime import datetime
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
@@ -38,25 +37,6 @@ FILE_LOGGING_CASE = [
         "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"},
     }
 ]
-
-def get_screenshot_path(test_name):
-    screenshot_dir = os.path.join(os.getcwd(), "report", "screenshots")
-    os.makedirs(screenshot_dir, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.jpg")
-    # return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.png")
-
-def click_confirm_if_popup_exists(page, timeout=3000):
-    """
-    '확인' 버튼을 가진 팝업이 뜨면 해당 버튼을 찾아 클릭한다.
-    나타나지 않으면(TimeoutError) 아무 처리도 하지 않는다.
-    """
-    try:
-        page.wait_for_selector("role=button[name='확인']", timeout=timeout)
-        page.get_by_role("button", name="확인").click()
-        print("알림 팝업의 '확인' 버튼을 클릭했습니다.")
-    except TimeoutError:
-        print("알림 팝업(확인 버튼)이 나타나지 않았습니다.")
 
 @allure.severity(allure.severity_level.TRIVIAL)
 @allure.step("Dooray Login Test")

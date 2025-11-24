@@ -50,15 +50,24 @@ ES_INDEX_PATTERN = os.getenv("ES_INDEX_PATTERN", "log-*/session")
 ALLURE_IP = os.getenv("ALLURE_IP", "172.16.150.138")
 
 # ============================
-# 서비스 이름 (ES-ServiceName 필드) (서비스 1건 발생 후 아래에서 조회)
-# curl -s "http://YOUR_ES_IP:9200/log-*/session/_search?pretty" \
-#   -H 'Content-Type: application/json' \
-#   -d '{
-#     "size": 1,
-#     "sort": [
-#       { "@timestamp": { "order": "desc" } }
-#     ]
-#   }'
+# 서비스 이름 (메일)
+# ============================
+SERVICE_NAME_DOORAY_MAIL_KO = "두레이 메일"
+SERVICE_NAME_DOORAY_MAIL_EN = "Dooray"
+SERVICE_NAMES_DOORAY_MAIL = [
+    SERVICE_NAME_DOORAY_MAIL_KO,
+    SERVICE_NAME_DOORAY_MAIL_EN,
+]
+
+SERVICE_NAME_NATE_MAIL_KO = "네이트메일"
+SERVICE_NAME_NATE_MAIL_EN = "Nate"
+SERVICE_NAMES_NATE_MAIL = [
+    SERVICE_NAME_NATE_MAIL_KO,
+    SERVICE_NAME_NATE_MAIL_EN,
+]
+
+# ============================
+# 서비스 이름 (SNS)
 # ============================
 SERVICE_NAME_DOORAY_BOARD_KO = "두레이 게시판"
 SERVICE_NAME_DOORAY_BOARD_EN = "Doorey Board"
@@ -66,18 +75,7 @@ SERVICE_NAMES_DOORAY_BOARD = [
     SERVICE_NAME_DOORAY_BOARD_KO,
     SERVICE_NAME_DOORAY_BOARD_EN,
 ]
-SERVICE_NAME_DOORAY_BOARD_COMMENT_KO = "두레이 게시판-댓글"
-SERVICE_NAME_DOORAY_BOARD_COMMENT_EN = "Doorey Board"
-SERVICE_NAMES_DOORAY_BOARD_COMMENT = [
-    SERVICE_NAME_DOORAY_BOARD_COMMENT_KO,
-    SERVICE_NAME_DOORAY_BOARD_COMMENT_EN,
-]
-SERVICE_NAME_DOORAY_MAIL_KO = "두레이 메일"
-SERVICE_NAME_DOORAY_MAIL_EN = "Dooray"
-SERVICE_NAMES_DOORAY_MAIL = [
-    SERVICE_NAME_DOORAY_MAIL_KO,
-    SERVICE_NAME_DOORAY_MAIL_EN,
-]
+
 SERVICE_NAME_DOORAY_CALENDAR_KO = "두레이 캘린더"
 SERVICE_NAME_DOORAY_CALENDAR_EN = "Doorey Calendar"
 SERVICE_NAMES_DOORAY_CALENDAR = [
@@ -85,6 +83,19 @@ SERVICE_NAMES_DOORAY_CALENDAR = [
     SERVICE_NAME_DOORAY_CALENDAR_EN,
 ]
 
+# ============================
+# 서비스 이름 (COMMENT)
+# ============================
+SERVICE_NAME_DOORAY_BOARD_COMMENT_KO = "두레이 게시판-댓글"
+SERVICE_NAME_DOORAY_BOARD_COMMENT_EN = "Doorey Board"
+SERVICE_NAMES_DOORAY_BOARD_COMMENT = [
+    SERVICE_NAME_DOORAY_BOARD_COMMENT_KO,
+    SERVICE_NAME_DOORAY_BOARD_COMMENT_EN,
+]
+
+# ============================
+# 서비스 이름 (WEBHARD)
+# ============================
 SERVICE_NAME_DOORAY_DRIVE_KO = "두레이 드라이브"
 SERVICE_NAME_DOORAY_DRIVE_EN = "Doorey Drive"
 SERVICE_NAMES_DOORAY_DRIVE = [
@@ -93,14 +104,11 @@ SERVICE_NAMES_DOORAY_DRIVE = [
 ]
 
 
-# 나중에 다른 서비스도 추가 가능
-# SERVICE_NAME_NATE_MAIL = "네이트 메일"
-# SERVICE_NAME_SLACK = "슬랙"
-
 # ============================
-# Dooray 접속 URL
+# 서비스별 접속 URL
 # ============================
 DOORAY_BASE_URL = os.getenv("DOORAY_BASE_URL", "https://ewalkerdlp.dooray.com")
+NATE_BASE_URL = os.getenv("NATE_BASE_URL", "https://www.nate.com")
 
 # ============================
 # DLP 패턴, 키워드, 파일첨부 요소화

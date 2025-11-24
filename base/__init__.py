@@ -5,11 +5,14 @@ from .account import (
     ALLURE_ID,
     ALLURE_PASSWORD,
     EMAIL_RECEIVER,
+    NATE_ID,
+    NATE_PASSWORD,
 )
 
 from .config import (
     DLP_BASE_URL,
     DOORAY_BASE_URL,
+    NATE_BASE_URL,
     ALLURE_IP,
     DLP_PATTERNS,
     DLP_KEYWORDS,
@@ -23,6 +26,7 @@ from .config import (
     SERVICE_NAMES_DOORAY_MAIL,
     SERVICE_NAMES_DOORAY_CALENDAR,
     SERVICE_NAMES_DOORAY_DRIVE,
+    SERVICE_NAMES_NATE_MAIL,
     ES_URL,
     ES_INDEX_PATTERN,
 )
@@ -31,12 +35,20 @@ from .function import (
     search_logs_from_es,
     assert_es_logs,
     assert_es_logs_with_retry,
+    goto_and_wait,
+    click_and_wait_popup,
+    wait_for_popup_if_exists,
+    get_screenshot_path,
+    click_confirm_if_popup_exists,
 )
 
 __all__ = [
     "DOORAY_BASE_URL",
+    "NATE_BASE_URL",
     "DOORAY_ID",
     "DOORAY_PASSWORD",
+    "NATE_ID",
+    "NATE_PASSWORD",
     "ALLURE_IP",
     "ALLURE_ID",
     "ALLURE_PASSWORD",
@@ -52,11 +64,17 @@ __all__ = [
     "SERVICE_NAMES_DOORAY_MAIL",
     "SERVICE_NAMES_DOORAY_CALENDAR",
     "SERVICE_NAMES_DOORAY_DRIVE",
+    "SERVICE_NAMES_NATE_MAIL",
     "ES_URL",
     "ES_INDEX_PATTERN",
     "search_logs_from_es",
     "assert_es_logs",
     "assert_es_logs_with_retry",
     "EMAIL_RECEIVER",
+    "goto_and_wait",
+    "click_and_wait_popup",
+    "wait_for_popup_if_exists",
+    "get_screenshot_path",
+    "click_confirm_if_popup_exists",
 
 ]

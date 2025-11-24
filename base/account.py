@@ -28,3 +28,9 @@ EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER", "soosan_kjkeum@nate.com")
 # ============================
 DOORAY_ID = os.getenv("DOORAY_ID", "dlptest1")
 DOORAY_PASSWORD = os.getenv("DOORAY_PASSWORD", "S@@san_1004!")
+
+# ============================
+# NATE_MAIL 접속 정보
+# ============================
+NATE_ID = os.getenv("NATE_ID", "soosan_kjkeum")
+NATE_PASSWORD = os.getenv("NATE_PASSWORD", "iwilltakeyou02@")

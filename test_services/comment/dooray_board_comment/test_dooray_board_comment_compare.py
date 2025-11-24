@@ -12,6 +12,7 @@ from base.testbasis import (
     DOORAY_PASSWORD,
     DLP_PATTERNS,
     DLP_KEYWORDS,
+    DLP_FILE,
     DLP_FILES,
     SERVICE_NAME_DOORAY_BOARD_COMMENT,
 )
@@ -323,17 +324,17 @@ def test_dooray_attach_board_comment(request):
             with page.expect_file_chooser() as fc_info:
                 page.get_by_role("button", name="첨부").click()
             file_chooser = fc_info.value
-            # # 한 개 파일
-            # file_chooser.set_files(r"D:/backup/dlp_new_automation/test_files/pattern.docx")
+            # 한 개 파일 첨부
+            file_chooser.set_files(DLP_FILE)
 
-            # 수정: 요소화 + 여러 파일(2개) 첨부
-            file_chooser.set_files(DLP_FILES)
+            # # 여러 파일(2개) 첨부
+            # file_chooser.set_files(DLP_FILES)
 
             # # 저장 클릭
             # page.get_by_role("button", name="저장").click()
 
             # 3초 대기
-            page.wait_for_timeout(20000)
+            page.wait_for_timeout(10000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(

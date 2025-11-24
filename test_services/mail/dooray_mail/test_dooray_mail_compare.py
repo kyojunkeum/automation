@@ -10,6 +10,7 @@ from base.testbasis import (
     DOORAY_PASSWORD,
     DLP_PATTERNS,
     DLP_KEYWORDS,
+    DLP_FILE,
     DLP_FILES,
     SERVICE_NAME_DOORAY_MAIL,
     EMAIL_RECEIVER,
@@ -44,7 +45,7 @@ FILE_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "파일 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "2"},
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"},
     }
 ]
 
@@ -370,11 +371,14 @@ def test_dooray_attach_mail(request):
             with page1.expect_file_chooser() as fc_info:
                 page1.get_by_test_id("MailWriteHeader_GhostButton").click()
             file_chooser = fc_info.value
-            file_chooser.set_files(DLP_FILES)
+            # 파일 1개 첨부
+            file_chooser.set_files(DLP_FILE)
+            # # 파일 2개 첨부
+            # file_chooser.set_files(DLP_FILES)
             print("파일을 첨부하였습니다.")
 
             # 5초 대기
-            page.wait_for_timeout(20000)
+            page.wait_for_timeout(10000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(

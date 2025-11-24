@@ -57,6 +57,12 @@ DLP_KEYWORDS = [
 BASE_DIR = Path(__file__).resolve().parent.parent
 # dlp_new_automation/test_files
 TEST_FILES_DIR = BASE_DIR / "test_files"
+
+# 두레이 첨부파일 1개 (상대 경로 기반)
+DLP_FILE = [
+    str(TEST_FILES_DIR / "test.jpeg"),
+]
+
 # 두레이 첨부파일 2개 (상대 경로 기반)
 DLP_FILES = [
     str(TEST_FILES_DIR / "test.jpeg"),

@@ -143,7 +143,7 @@ def test_dooray_board_comment_normal(request):
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
+                service_name=SERVICE_NAMES_DOORAY_BOARD_COMMENT,
                 test_cases=NORMAL_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -203,7 +203,7 @@ def test_dooray_board_comment_pattern(request):
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
+                service_name=SERVICE_NAMES_DOORAY_BOARD_COMMENT,
                 test_cases=PATTERN_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -264,7 +264,7 @@ def test_dooray_board_comment_keyword(request):
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAME_DOORAY_BOARD_COMMENT,
+                service_name=SERVICE_NAMES_DOORAY_BOARD_COMMENT,
                 test_cases=KEYWORD_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -328,7 +328,7 @@ def test_dooray_board_comment_attach(request):
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAME_DOORAY_BOARD,
+                service_name=SERVICE_NAMES_DOORAY_BOARD,
                 test_cases=FILE_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도

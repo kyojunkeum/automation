@@ -140,7 +140,7 @@ def test_dooray_calendar_normal(request):
             time.sleep(1)
 
             # 확인 클릭
-            confirm_button = page1.locator('data-testid=ConfirmDialog_ContainedButton')
+            confirm_button = page1.get_by_test_id("CalendarModalScheduleDialogCollision_OutlinedButton")
             if confirm_button.is_visible():
                 confirm_button.click()
 
@@ -149,7 +149,7 @@ def test_dooray_calendar_normal(request):
 
                 # ===== 여기서 ES 검증 반복 호출 =====
                 assert_es_logs_with_retry(
-                    service_name=SERVICE_NAME_DOORAY_CALENDAR,
+                    service_name=SERVICE_NAMES_DOORAY_CALENDAR,
                     test_cases=NORMAL_LOGGING_CASE,
                     size=1,
                     max_attempts=3,  # 총 3번 시도
@@ -208,7 +208,7 @@ def test_dooray_calendar_pattern(request):
             time.sleep(1)
 
             # 확인 클릭
-            confirm_button = page1.locator('data-testid=ConfirmDialog_ContainedButton')
+            confirm_button = page1.get_by_test_id("CalendarModalScheduleDialogCollision_OutlinedButton")
             if confirm_button.is_visible():
                 confirm_button.click()
 
@@ -217,7 +217,7 @@ def test_dooray_calendar_pattern(request):
 
                 # ===== 여기서 ES 검증 반복 호출 =====
                 assert_es_logs_with_retry(
-                    service_name=SERVICE_NAME_DOORAY_CALENDAR,
+                    service_name=SERVICE_NAMES_DOORAY_CALENDAR,
                     test_cases=PATTERN_LOGGING_CASE,
                     size=1,
                     max_attempts=3,  # 총 3번 시도
@@ -276,7 +276,7 @@ def test_dooray_calendar_keyword(request):
             time.sleep(1)
 
             # 확인 클릭
-            confirm_button = page1.locator('data-testid=ConfirmDialog_ContainedButton')
+            confirm_button = page1.get_by_test_id("CalendarModalScheduleDialogCollision_OutlinedButton")
             if confirm_button.is_visible():
                 confirm_button.click()
 
@@ -285,7 +285,7 @@ def test_dooray_calendar_keyword(request):
 
                 # ===== 여기서 ES 검증 반복 호출 =====
                 assert_es_logs_with_retry(
-                    service_name=SERVICE_NAME_DOORAY_CALENDAR,
+                    service_name=SERVICE_NAMES_DOORAY_CALENDAR,
                     test_cases=KEYWORD_LOGGING_CASE,
                     size=1,
                     max_attempts=3,  # 총 3번 시도
@@ -353,7 +353,7 @@ def test_dooray_calendar_attach(request):
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAME_DOORAY_CALENDAR,
+                service_name=SERVICE_NAMES_DOORAY_CALENDAR,
                 test_cases=FILE_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도

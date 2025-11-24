@@ -1,5 +1,5 @@
 # common/base.py
-from typing import List, Dict
+from typing import List, Dict, Sequence, Union
 import requests
 import allure
 from base.config import ES_URL, ES_INDEX_PATTERN
@@ -7,7 +7,7 @@ import time
 from requests.exceptions import ConnectionError, ReadTimeout
 
 def search_logs_from_es(
-    service_name: str,
+    service_name: Union[str, Sequence[str]],
     size: int = 1,
     es_url: str = ES_URL,
     index_pattern: str = ES_INDEX_PATTERN,
@@ -15,11 +15,22 @@ def search_logs_from_es(
     max_retries: int = 3,          # ✅ 재시도 횟수 추가
     retry_interval: float = 1.0,   # ✅ 재시도 간격(초)
 ):
+    """
+        service_name: str  또는 [str, str, ...]
+          - str     : 한 개 서비스명
+          - list/tuple : 여러 서비스명(한글/영어 등)을 OR 조건으로 검색
+        """
+
+    # 항상 리스트 형태로 맞추기
+    if isinstance(service_name, str):
+        service_names = [service_name]
+    else:
+        service_names = list(service_name)
     query = {
         "query": {
             "bool": {
                 "must": [
-                    {"term": {"ServiceName": service_name}}
+                    {"term": {"ServiceName": service_names}}
                 ]
             }
         },
@@ -112,7 +123,7 @@ def compare_es_doc_with_expected(src: dict, expected: Dict[str, str]):
 
 
 def assert_es_logs(
-    service_name: str,
+    service_name: Union[str, Sequence[str]],
     test_cases: List[Dict],
     size: int | None = None,   # ← 기본값 None 으로 변경
     # size: int = 1, # 1개만 볼 때

@@ -4,6 +4,7 @@ from .account import (
     DOORAY_PASSWORD,
     ALLURE_ID,
     ALLURE_PASSWORD,
+    EMAIL_RECEIVER,
 )
 
 from .config import (
@@ -45,4 +46,6 @@ __all__ = [
     "search_logs_from_es",
     "assert_es_logs",
     "assert_es_logs_with_retry",
+    "EMAIL_RECEIVER",
+
 ]

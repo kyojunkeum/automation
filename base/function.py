@@ -6,7 +6,6 @@ from base.config import ES_URL, ES_INDEX_PATTERN
 import time
 from requests.exceptions import ConnectionError, ReadTimeout
 
-
 def search_logs_from_es(
     service_name: str,
     size: int = 1,

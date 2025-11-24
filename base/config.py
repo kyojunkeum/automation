@@ -1,15 +1,41 @@
 import os
 from pathlib import Path
+import socket
+
+def get_host_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        return s.getsockname()[0]
+    except:
+        return "127.0.0.1"
+    finally:
+        s.close()
+
+HOST_IP = get_host_ip()
+
+# PC IP -> DUT IP 매핑
+DUT_MAPPING = {
+    "172.16.120.59": "172.16.150.187",
+    "172.16.150.124": "172.16.150.188",
+    "172.16.150.131": "172.16.150.185",
+    "172.16.150.132": "172.16.150.187"
+}
+
+# 기본값 지정
+DUT_IP = DUT_MAPPING.get(HOST_IP, "172.16.150.187")
 
 # ============================
-# DLP 제품 접속 URL
+# DUT 기반 URL 정의 - DLP 제품 접속 URL
 # ============================
-DLP_BASE_URL = os.getenv("DLP_BASE_URL", "https://172.16.150.187:8443")
+# DLP_BASE_URL = os.getenv("DLP_BASE_URL", "https://172.16.150.187:8443")
+DLP_BASE_URL = f"https://{DUT_IP}:8443"
 
 # ============================
 # Elasticsearch 접속 URL 및 인덱스
 # ============================
-ES_URL = os.getenv("ES_URL", "http://172.16.150.187:9200")
+# ES_URL = os.getenv("ES_URL", "http://172.16.150.187:9200")
+ES_URL = f"http://{DUT_IP}:9200"
 ES_INDEX_PATTERN = os.getenv("ES_INDEX_PATTERN", "log-*/session")
 
 # ============================

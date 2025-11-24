@@ -8,6 +8,7 @@ from .account import (
 )
 
 from .config import (
+    DLP_BASE_URL,
     DOORAY_BASE_URL,
     ALLURE_IP,
     DLP_PATTERNS,

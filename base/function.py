@@ -26,12 +26,17 @@ def search_logs_from_es(
         service_names = [service_name]
     else:
         service_names = list(service_name)
+
+    should_clauses = [
+        {"term": {"ServiceName": name}}
+        for name in service_names
+    ]
+
     query = {
         "query": {
             "bool": {
-                "must": [
-                    {"term": {"ServiceName": service_names}}
-                ]
+                "should": should_clauses,
+                "minimum_should_match": 1,
             }
         },
         "sort": [

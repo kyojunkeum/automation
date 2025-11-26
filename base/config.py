@@ -105,6 +105,12 @@ SERVICE_NAMES_NAVERWORKS_BOARD = [
     SERVICE_NAME_NAVERWORKS_BOARD_EN,
 ]
 
+SERVICE_NAME_NAVERWORKS_CALENDAR_KO = "네이버웍스 캘린더"
+SERVICE_NAME_NAVERWORKS_CALENDAR_EN = "NaverWorks Calendar"
+SERVICE_NAMES_NAVERWORKS_CALENDAR = [
+    SERVICE_NAME_NAVERWORKS_CALENDAR_KO,
+    SERVICE_NAME_NAVERWORKS_CALENDAR_EN,
+]
 
 # ============================
 # 서비스 이름 (COMMENT)
@@ -139,6 +145,7 @@ OUTLOOK_BASE_URL = os.getenv("OUTLOOK_BASE_URL", "https://outlook.office.com")
 OUTLOOK_MAIL_URL = os.getenv("OUTLOOK_MAIL_URL", "https://outlook.live.com/mail/0/")
 NAVERWORKS_BASE_URL = os.getenv("NAVERWORKS_BASE_URL", "https://naver.worksmobile.com")
 NAVERWORKS_BOARD_URL = os.getenv("NAVERWORKS_BOARD_URL", "https://board.worksmobile.com")
+NAVERWORKS_CALENDAR_URL = os.getenv("NAVERWORKS_CALENDAR_URL", "https://calendar.worksmobile.com")
 # YAHOO_BASE_URL = os.getenv("YAHOO_BASE_URL", "https://mail.yahoo.com") 홈페이지 자동화 브라우저로 로그인 시 사용 불가
 # ============================
 # DLP 패턴, 키워드, 파일첨부 요소화

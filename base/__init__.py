@@ -26,6 +26,7 @@ from .config import (
     OUTLOOK_MAIL_URL,
     NAVERWORKS_BASE_URL,
     NAVERWORKS_BOARD_URL,
+    NAVERWORKS_CALENDAR_URL,
     ALLURE_IP,
     DLP_NORMAL,
     DLP_PATTERNS,
@@ -44,6 +45,7 @@ from .config import (
     SERVICE_NAMES_DAUM_MAIL,
     SERVICE_NAMES_OUTLOOK_MAIL,
     SERVICE_NAMES_NAVERWORKS_BOARD,
+    SERVICE_NAMES_NAVERWORKS_CALENDAR,
     ES_URL,
     ES_INDEX_PATTERN,
 )
@@ -69,6 +71,7 @@ __all__ = [
     "OUTLOOK_MAIL_URL",
     "NAVERWORKS_BASE_URL",
     "NAVERWORKS_BOARD_URL",
+    "NAVERWORKS_CALENDAR_URL",
     "DOORAY_ID",
     "DOORAY_PASSWORD",
     "NATE_ID",
@@ -99,6 +102,7 @@ __all__ = [
     "SERVICE_NAMES_DAUM_MAIL",
     "SERVICE_NAMES_OUTLOOK_MAIL",
     "SERVICE_NAMES_NAVERWORKS_BOARD",
+    "SERVICE_NAMES_NAVERWORKS_CALENDAR",
     "ES_URL",
     "ES_INDEX_PATTERN",
     "search_logs_from_es",
@@ -110,5 +114,6 @@ __all__ = [
     "get_screenshot_path",
     "click_confirm_if_popup_exists",
     "safe_send_with_popup_retry",
+
 
 ]

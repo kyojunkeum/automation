@@ -1,4 +1,3 @@
-# common/base.py
 from typing import List, Dict, Sequence, Union
 import requests
 import allure
@@ -8,6 +7,8 @@ from requests.exceptions import ConnectionError, ReadTimeout
 from playwright.sync_api import Page, BrowserContext, TimeoutError
 import os
 from datetime import datetime
+
+
 
 def goto_and_wait(page: Page, url: str, timeout: int = 15000, retries: int = 2):
     """
@@ -270,30 +271,6 @@ def compare_es_doc_with_expected(src: dict, expected: Dict[str, Any]):
             f"tags mismatch: expected={exp_tags_list}, actual={actual_tags_list}, "
             f"MessageID={src.get('MessageID')}"
         )
-
-
-# def compare_es_doc_with_expected(src: dict, expected: Dict[str, str]):
-#     """
-#     ES 한 건(_source)과 기대값 딕셔너리 비교.
-#     """
-#     pattern_count, keyword_count, file_count = extract_counts_from_es_source(src)
-#
-#     exp_pattern = expected["pattern_count"]
-#     exp_keyword = expected["keyword_count"]
-#     exp_file = expected["file_count"]
-#
-#     assert pattern_count == exp_pattern, (
-#         f"pattern_count mismatch: expected={exp_pattern}, actual={pattern_count}, "
-#         f"MessageID={src.get('MessageID')}"
-#     )
-#     assert keyword_count == exp_keyword, (
-#         f"keyword_count mismatch: expected={exp_keyword}, actual={keyword_count}, "
-#         f"MessageID={src.get('MessageID')}"
-#     )
-#     assert file_count == exp_file, (
-#         f"file_count mismatch: expected={exp_file}, actual={file_count}, "
-#         f"MessageID={src.get('MessageID')}"
-#     )
 
 
 def assert_es_logs(

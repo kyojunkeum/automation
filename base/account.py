@@ -9,7 +9,7 @@ DLP_ADMIN_PASSWORD = os.getenv("DLP_ADMIN_PASSWORD", "dkswjswmd4071*")
 # ============================
 # Elasticsearch 접속 정보
 # ============================
-# server_config 에 포함됨, 추후 ID/PW 정보 추가되면 이곳에 추가!
+# 추후 ID/PW 정보 추가되면 이곳에 추가!
 
 # ============================
 # allure Test Server 접속 정보

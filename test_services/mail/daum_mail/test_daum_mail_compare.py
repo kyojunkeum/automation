@@ -299,7 +299,7 @@ def test_daum_mail_attach(request):
             except Exception:
                 print("▶ [DEBUG] '보내기' 버튼이 없어 스킵합니다.")
 
-                # 5초 대기
+                # 대기
                 page.wait_for_timeout(10000)
 
                 # ===== 여기서 ES 검증 반복 호출 =====

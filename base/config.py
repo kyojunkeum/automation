@@ -73,6 +73,14 @@ SERVICE_NAMES_DAUM_MAIL = [
     SERVICE_NAME_DAUM_MAIL_EN,
 ]
 
+SERVICE_NAME_OUTLOOK_MAIL_KO = "Outlook메일"
+SERVICE_NAME_OUTLOOK_MAIL_EN = "Outlook"
+SERVICE_NAMES_OUTLOOK_MAIL = [
+    SERVICE_NAME_OUTLOOK_MAIL_KO,
+    SERVICE_NAME_OUTLOOK_MAIL_EN,
+]
+
+
 # ============================
 # 서비스 이름 (SNS)
 # ============================
@@ -119,6 +127,9 @@ NATE_BASE_URL = os.getenv("NATE_BASE_URL", "https://www.nate.com")
 NATE_MAIL_URL = os.getenv("NATE_MAIL_URL", "https://mail3.nate.com")
 DAUM_BASE_URL = os.getenv("DAUM_BASE_URL", "https://www.daum.net")
 DAUM_MAIL_URL = os.getenv("DAUM_MAIL_URL", "https://mail.daum.net")
+OUTLOOK_BASE_URL = os.getenv("OUTLOOK_BASE_URL", "https://outlook.office.com")
+OUTLOOK_MAIL_URL = os.getenv("OUTLOOK_MAIL_URL", "https://outlook.live.com/mail/0/")
+# YAHOO_BASE_URL = os.getenv("YAHOO_BASE_URL", "https://mail.yahoo.com") 홈페이지 자동화 브라우저로 로그인 시 사용 불가
 # ============================
 # DLP 패턴, 키워드, 파일첨부 요소화
 # ============================

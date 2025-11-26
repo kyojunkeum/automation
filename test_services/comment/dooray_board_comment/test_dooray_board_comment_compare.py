@@ -1,6 +1,5 @@
 import os
 import time
-from datetime import datetime
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,TimeoutError
@@ -19,7 +18,7 @@ PATTERN_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "패턴 로깅",
-        "expected": {"pattern_count": "15", "keyword_count": "0", "file_count": "0"},
+        "expected": {"pattern_count": "15", "keyword_count": "0", "file_count": "0", "tags" : ["comment"]},
     }
 ]
 
@@ -27,7 +26,7 @@ KEYWORD_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "키워드 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0"},
+        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0", "tags" : ["comment"]},
     }
 ]
 
@@ -35,7 +34,7 @@ FILE_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "파일 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"},
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1", "tags" : ["sns"]},
     }
 ]
 

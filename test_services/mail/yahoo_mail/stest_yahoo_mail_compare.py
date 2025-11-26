@@ -1,29 +1,41 @@
 import os
 import time
-from datetime import datetime
-
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
+from base import *
 
-def get_screenshot_path(test_name):
-    screenshot_dir = os.path.join(os.getcwd(), "report", "screenshots")
-    os.makedirs(screenshot_dir, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.jpg")
-    # return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.png")
+NORMAL_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "기본 로깅",
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"},
+    }
+]
 
-def click_confirm_if_popup_exists(page, timeout=3000):
-    """
-    '확인' 버튼을 가진 팝업이 뜨면 해당 버튼을 찾아 클릭한다.
-    나타나지 않으면(TimeoutError) 아무 처리도 하지 않는다.
-    """
-    try:
-        page.wait_for_selector("role=button[name='확인']", timeout=timeout)
-        page.get_by_role("button", name="확인").click()
-        print("알림 팝업의 '확인' 버튼을 클릭했습니다.")
-    except TimeoutError:
-        print("알림 팝업(확인 버튼)이 나타나지 않았습니다.")
+PATTERN_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "패턴 로깅",
+        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "0"},
+    }
+]
+
+KEYWORD_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "키워드 로깅",
+        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0"},
+    }
+]
+
+FILE_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "파일 로깅",
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"},
+    }
+]
 
 @allure.severity(allure.severity_level.TRIVIAL)
 @allure.step("Yahoo Login Test")
@@ -38,8 +50,9 @@ def test_yahoo_login():
 
         try:
             # 홈페이지 진입
-            page.goto("https://mail.yahoo.com/")
-            time.sleep(1)
+            goto_and_wait(page, f"{YAHOO_BASE_URL}/")
+            # page.goto("https://mail.yahoo.com/")
+            # time.sleep(1)
 
             login_link = page.get_by_role("link", name="로그인")
             if login_link.is_visible():
@@ -50,20 +63,13 @@ def test_yahoo_login():
 
             # 아이디 및 패스워드 입력
             page.get_by_role("textbox", name="사용자 이름, 이메일 또는 무선 기기").click()
-            page.get_by_role("textbox", name="사용자 이름, 이메일 또는 무선 기기").fill("soosan_kjkeum")
+            page.get_by_role("textbox", name="사용자 이름, 이메일 또는 무선 기기").fill(YAHOO_ID)
             page.get_by_role("button", name="다음").click()
             time.sleep(3)
             page.get_by_role("textbox", name="비밀번호").click()
-            page.get_by_role("textbox", name="비밀번호").fill("iwilltakeyou01!")
+            page.get_by_role("textbox", name="비밀번호").fill(YAHOO_PASSWORD)
             page.get_by_role("button", name="다음").click()
             time.sleep(3)
-
-            # # 로그인 성공 여부 확인
-            # page.get_by_test_id("MyLoginProfileLayer").locator("img").click()
-            # page.locator("#tippy-7").get_by_text("dlptest1").click()
-            # page.wait_for_selector("role=link[name='dlptest1']", timeout=3000)
-            # assert page.get_by_role("link", name="dlptest1").is_visible() == True, "login failed. can't find the profile."
-            # time.sleep(2)
 
             # 세션 상태 저장
             os.makedirs("session", exist_ok=True)
@@ -71,12 +77,12 @@ def test_yahoo_login():
             context.storage_state(path=session_path)
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_login")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_yahoo_login")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="yahoo_login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록

@@ -38,7 +38,7 @@ def check_internet_connection(test_url="https://www.daum.net"):
 # 메인 자동화 시나리오
 async def run_test():
     internet_url = "https://www.daum.net"
-    daum_test_path = "D:/dlp_new_automation/test_services/mail/daum_mail/stest_daum_mail_compare.py"
+    daum_test_path = "D:/dlp_new_automation/test_services/mail/daum_mail/test_daum_mail_compare.py"
 
 
 

@@ -79,6 +79,38 @@ def click_confirm_if_popup_exists(page, timeout=3000):
     print("▶ [DEBUG] 팝업 없음 또는 '확인' 버튼 미발견 → 스킵")
     return False
 
+def safe_send_with_popup_retry(page, max_retry=3, wait_sec=3):
+    """
+    '보내기' 버튼을 누르고, 팝업이 뜨면 '확인' 클릭 후 다시 시도.
+    최대 max_retry 회 반복.
+    """
+    for attempt in range(1, max_retry + 1):
+        print(f"▶ [DEBUG] 보내기 시도 {attempt}/{max_retry}")
+
+        # 1) 보내기 버튼 클릭
+        try:
+            page.get_by_label("보내기", exact=True).click(timeout=2000)
+            print("✔ [DEBUG] '보내기' 버튼 클릭")
+        except Exception:
+            print("▶ [DEBUG] '보내기' 버튼 없음 → 종료")
+            return False
+
+        # 2) 팝업 확인 처리
+        popup_clicked = click_confirm_if_popup_exists(page, timeout=2500)
+
+        # 팝업이 있었다면 wait
+        if popup_clicked:
+            print(f"⏳ [DEBUG] 팝업 처리 후 {wait_sec}초 대기")
+            page.wait_for_timeout(wait_sec * 1000)
+            continue  # → 다시 보내기 버튼 누름
+
+        # 팝업이 없으면 성공으로 간주
+        print("✔ [DEBUG] 팝업 없음 → 보내기 성공 완료")
+        return True
+
+    print("❗ [DEBUG] 최대 재시도 도달 → 종료")
+    return False
+
 def get_screenshot_path(test_name):
     screenshot_dir = os.path.join(os.getcwd(), "report", "screenshots")
     os.makedirs(screenshot_dir, exist_ok=True)

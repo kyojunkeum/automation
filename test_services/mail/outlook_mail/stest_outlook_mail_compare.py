@@ -1,29 +1,41 @@
 import os
 import time
-from datetime import datetime
-
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
+from base import *
 
-def get_screenshot_path(test_name):
-    screenshot_dir = os.path.join(os.getcwd(), "report", "screenshots")
-    os.makedirs(screenshot_dir, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.jpg")
-    # return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.png")
+NORMAL_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "기본 로깅",
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"},
+    }
+]
 
-def click_confirm_if_popup_exists(page, timeout=3000):
-    """
-    '확인' 버튼을 가진 팝업이 뜨면 해당 버튼을 찾아 클릭한다.
-    나타나지 않으면(TimeoutError) 아무 처리도 하지 않는다.
-    """
-    try:
-        page.wait_for_selector("role=button[name='확인']", timeout=timeout)
-        page.get_by_role("button", name="확인").click()
-        print("알림 팝업의 '확인' 버튼을 클릭했습니다.")
-    except TimeoutError:
-        print("알림 팝업(확인 버튼)이 나타나지 않았습니다.")
+PATTERN_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "패턴 로깅",
+        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "0"},
+    }
+]
+
+KEYWORD_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "키워드 로깅",
+        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0"},
+    }
+]
+
+FILE_LOGGING_CASE = [
+    {
+        "hit_index": 0,
+        "label": "파일 로깅",
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"},
+    }
+]
 
 @allure.severity(allure.severity_level.TRIVIAL)
 @allure.step("Outlook Login Test")
@@ -38,27 +50,19 @@ def test_outlook_login():
 
         try:
             # 홈페이지 진입
-            page.goto("https://outlook.office.com/")
-            time.sleep(1)
+            goto_and_wait(page, f"{OUTLOOK_BASE_URL}/")
 
             # 아이디 및 패스워드 입력
             page.get_by_placeholder("전자 메일, 전화 또는 Skype").click()
-            page.get_by_placeholder("전자 메일, 전화 또는 Skype").fill("soosan_kjkeum@naver.com")
+            page.get_by_placeholder("전자 메일, 전화 또는 Skype").fill(OUTLOOK_ID)
             page.get_by_role("button", name="다음").click()
             time.sleep(3)
-            page.get_by_test_id("i0118").click()
-            page.get_by_test_id("i0118").fill("iwilltakeyou01!")
-            page.get_by_test_id("textButtonContainer").get_by_role("button", name="로그인").click()
-            page.get_by_label("아니요").click()
-
+            page.get_by_role("button", name="암호 사용").click()
+            page.get_by_role("textbox", name="암호").click()
+            page.get_by_role("textbox", name="암호").fill(OUTLOOK_PASSWORD)
+            page.get_by_test_id("primaryButton").click()
+            page.get_by_test_id("secondaryButton").click()
             time.sleep(3)
-
-            # # 로그인 성공 여부 확인
-            # page.get_by_test_id("MyLoginProfileLayer").locator("img").click()
-            # page.locator("#tippy-7").get_by_text("dlptest1").click()
-            # page.wait_for_selector("role=link[name='dlptest1']", timeout=3000)
-            # assert page.get_by_role("link", name="dlptest1").is_visible() == True, "login failed. can't find the profile."
-            # time.sleep(2)
 
             # 세션 상태 저장
             os.makedirs("session", exist_ok=True)
@@ -66,12 +70,12 @@ def test_outlook_login():
             context.storage_state(path=session_path)
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_login")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_outlook_login")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="outlook_login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
@@ -81,9 +85,9 @@ def test_outlook_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Outlook mail Normal Test")
-@pytest.mark.dependency(name="outlook_normal_mail")
-def test_outlook_normal_mail(request):
+@allure.step("Outlook Mail Normal Test")
+@pytest.mark.dependency(name="outlook_mail_normal")
+def test_outlook_mail_normal(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "outlookstorageState.json")
@@ -94,45 +98,50 @@ def test_outlook_normal_mail(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://outlook.live.com/mail/0/", wait_until="domcontentloaded")
+            page.goto(f"{OUTLOOK_MAIL_URL}", wait_until="domcontentloaded")
             time.sleep(5)
 
             # 새 메일
-            page.locator("button").filter(has_text="새 메일새 전자 메일 메시지를 만듭니다. (N)").click()
+            page.get_by_role("button", name="새 메일").click()
             time.sleep(1)
 
             # 수신자 입력
             page.get_by_label("받는 사람").click()
-            page.get_by_label("받는 사람", exact=True).fill("soosan_kjkeum@nate.com")
+            page.get_by_label("받는 사람", exact=True).fill(EMAIL_RECEIVER)
             print("수신자 정보를 입력하였습니다.")
 
             # 제목 입력
-            page.get_by_placeholder("제목 추가").click()
-            page.get_by_placeholder("제목 추가").fill("기본로깅테스트")
+            page.get_by_role("textbox", name="과목").click()
+            page.get_by_role("textbox", name="과목").fill("기본로깅테스트")
 
             # 본문 입력
-            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").click()
-            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").fill("기본로깅테스트")
+            editor_box = page.get_by_role("textbox", name="메시지 본문")
+            editor_box.click()
+            editor_box.fill("\n".join(DLP_NORMAL))
 
             # 보내기 클릭
-            page.get_by_label("보내기", exact=True).click()
+            page.get_by_role("button", name="보내기", exact=True).click()
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 대기
+            page.wait_for_timeout(5000)
 
-            # # 보내기 성공 여부 확인
-            # page.locator("p").filter(has_text="메일이 성공적으로 발송되었습니다").click()
-            # page.wait_for_selector("has_text=메일이 성공적으로 발송되었습니다", timeout=3000)
-            # assert page.locator("has_text=메일이 성공적으로 발송되었습니다").is_visible() == True, "failed to send."
-            # page.wait_for_timeout(2000)  # 2초 대기 (time.sleep 대신 사용)
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
+                service_name=SERVICE_NAMES_OUTLOOK_MAIL,
+                test_cases=NORMAL_LOGGING_CASE,
+                size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
+            )
+
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_normal_send")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="nate_normal_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_outlook_mail_normal")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="outlook_mail_normal_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -141,9 +150,9 @@ def test_outlook_normal_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Outlook mail Pattern Test")
-@pytest.mark.dependency(name="outlook_pattern_mail")
-def test_outlook_pattern_mail(request):
+@allure.step("Outlook Mail Pattern Test")
+@pytest.mark.dependency(name="outlook_mail_pattern")
+def test_outlook_mail_pattern(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "outlookstorageState.json")
@@ -154,44 +163,49 @@ def test_outlook_pattern_mail(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://outlook.live.com/mail/0/", wait_until="domcontentloaded")
+            page.goto(f"{OUTLOOK_MAIL_URL}", wait_until="domcontentloaded")
             time.sleep(5)
 
             # 새 메일
-            page.locator("button").filter(has_text="새 메일새 전자 메일 메시지를 만듭니다. (N)").click()
+            page.get_by_role("button", name="새 메일").click()
             time.sleep(1)
 
             # 수신자 입력
             page.get_by_label("받는 사람").click()
-            page.get_by_label("받는 사람", exact=True).fill("soosan_kjkeum@nate.com")
+            page.get_by_label("받는 사람", exact=True).fill(EMAIL_RECEIVER)
             print("수신자 정보를 입력하였습니다.")
 
             # 제목 입력
-            page.get_by_placeholder("제목 추가").click()
-            page.get_by_placeholder("제목 추가").fill("개인정보테스트")
+            page.get_by_role("textbox", name="과목").click()
+            page.get_by_role("textbox", name="과목").fill("개인정보로깅테스트")
 
             # 본문 입력
-            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").click()
-            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").fill("kjkeum@nate.com")
+            editor_box = page.get_by_role("textbox", name="메시지 본문")
+            editor_box.click()
+            editor_box.fill("\n".join(DLP_PATTERNS))
 
             # 보내기 클릭
-            page.get_by_label("보내기", exact=True).click()
+            page.get_by_role("button", name="보내기", exact=True).click()
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 대기
+            page.wait_for_timeout(5000)
 
-            # # 보내기 성공 여부 확인
-            # page.wait_for_selector("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요", timeout=3000)
-            # assert page.locator("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요").is_visible() == True, "failed to block."
-            # page.wait_for_timeout(2000)  # 2초 대기 (time.sleep 대신 사용)
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
+                service_name=SERVICE_NAMES_OUTLOOK_MAIL,
+                test_cases=PATTERN_LOGGING_CASE,
+                size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
+            )
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_pattern_send")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="nate_pattern_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_outlook_mail_pattern")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="outlook_mail_pattern_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -200,9 +214,9 @@ def test_outlook_pattern_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Outlook mail Keyword Test")
+@allure.step("Outlook Mail Keyword Test")
 @pytest.mark.dependency(name="outlook_keyword_mail")
-def test_outlook_keyword_mail(request):
+def test_outlook_mail_keyword(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "outlookstorageState.json")
@@ -213,44 +227,49 @@ def test_outlook_keyword_mail(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://outlook.live.com/mail/0/", wait_until="domcontentloaded")
+            page.goto(f"{OUTLOOK_MAIL_URL}", wait_until="domcontentloaded")
             time.sleep(5)
 
             # 새 메일
-            page.locator("button").filter(has_text="새 메일새 전자 메일 메시지를 만듭니다. (N)").click()
+            page.get_by_role("button", name="새 메일").click()
             time.sleep(1)
 
             # 수신자 입력
             page.get_by_label("받는 사람").click()
-            page.get_by_label("받는 사람", exact=True).fill("soosan_kjkeum@nate.com")
+            page.get_by_label("받는 사람", exact=True).fill(EMAIL_RECEIVER)
             print("수신자 정보를 입력하였습니다.")
 
             # 제목 입력
-            page.get_by_placeholder("제목 추가").click()
-            page.get_by_placeholder("제목 추가").fill("키워드테스트")
+            page.get_by_role("textbox", name="과목").click()
+            page.get_by_role("textbox", name="과목").fill("키워드로깅테스트")
 
             # 본문 입력
-            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").click()
-            page.get_by_label("메시지 본문, 종료하려면 Alt+F10을 누릅니다").fill("키워드테스트")
+            editor_box = page.get_by_role("textbox", name="메시지 본문")
+            editor_box.click()
+            editor_box.fill("\n".join(DLP_KEYWORDS))
 
             # 보내기 클릭
-            page.get_by_label("보내기", exact=True).click()
+            page.get_by_role("button", name="보내기", exact=True).click()
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 대기
+            page.wait_for_timeout(5000)
 
-            # # 보내기 성공 여부 확인
-            # page.wait_for_selector("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요", timeout=3000)
-            # assert page.locator("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요").is_visible() == True, "failed to block."
-            # page.wait_for_timeout(2000)  # 2초 대기
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
+                service_name=SERVICE_NAMES_OUTLOOK_MAIL,
+                test_cases=KEYWORD_LOGGING_CASE,
+                size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
+            )
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_keyword_send")
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="nate_keyword_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_outlook_mail_keyword")
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="outlook_mail_keyword_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -259,9 +278,9 @@ def test_outlook_keyword_mail(request):
             browser.close()
 
 @allure.severity(allure.severity_level.BLOCKER)
-@allure.step("Outlook mail attach Test")
-@pytest.mark.dependency(name="outlook_attach_mail")
-def test_outlook_attach_mail(request):
+@allure.step("Outlook Mail Attach Test")
+@pytest.mark.dependency(name="outlook_mail_attach")
+def test_outlook_mail_attach(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "outlookstorageState.json")
@@ -272,12 +291,21 @@ def test_outlook_attach_mail(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://outlook.live.com/mail/0/", wait_until="domcontentloaded")
+            page.goto(f"{OUTLOOK_MAIL_URL}", wait_until="domcontentloaded")
             time.sleep(5)
 
             # 새 메일
-            page.locator("button").filter(has_text="새 메일새 전자 메일 메시지를 만듭니다. (N)").click()
+            page.get_by_role("button", name="새 메일").click()
             time.sleep(1)
+
+            # 수신자 입력
+            page.get_by_label("받는 사람").click()
+            page.get_by_label("받는 사람", exact=True).fill(EMAIL_RECEIVER)
+            print("수신자 정보를 입력하였습니다.")
+
+            # 제목 입력
+            page.get_by_role("textbox", name="과목").click()
+            page.get_by_role("textbox", name="과목").fill("첨부파일로깅테스트")
 
             # 파일 첨부
             page.get_by_role("tab", name="삽입").click()
@@ -285,27 +313,31 @@ def test_outlook_attach_mail(request):
             page.get_by_label("파일 첨부").click()
             time.sleep(1)
             file_input = page.locator("[data-testid='local-computer-filein']").first
-            file_input.set_input_files("D:/dlp_new_automation/test_files/test.jpg")
+            file_input.set_input_files(DLP_FILE)
             print("파일 첨부가 완료되었습니다.")
 
             # 보내기 클릭
-            # page.get_by_label("보내기", exact=True).click()
+            safe_send_with_popup_retry(page)
 
-            # 3초 대기
-            page.wait_for_timeout(3000)
+            # 대기
+            page.wait_for_timeout(10000)
 
-            # # 보내기 성공 여부 확인
-            # page.wait_for_selector("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요", timeout=3000)
-            # assert page.locator("text=관리자에 의해 차단되었습니다. 관리자에 문의 하세요").is_visible() == True, "failed to block."
-            # page.wait_for_timeout(2000)  # 2초 대기
+            # ===== 여기서 ES 검증 반복 호출 =====
+            assert_es_logs_with_retry(
+                service_name=SERVICE_NAMES_OUTLOOK_MAIL,
+                test_cases=FILE_LOGGING_CASE,
+                size=1,
+                max_attempts=3,  # 총 3번 시도
+                interval_sec=5  # 시도 간 5초 대기
+            )
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_attach_send")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="nate_attach_send_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_outlook_mail_attach")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="outlook_mail_attach_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -313,104 +345,3 @@ def test_outlook_attach_mail(request):
 
         finally:
             browser.close()
-
-def compare_ui_and_values(page, row_index, expected_counts):
-    """
-    UI 데이터와 values 를 비교하는 함수
-    :param page: Playwright Page 객체
-    :param row_index: 비교할 행 번호 (1부터 시작)
-    :param expected_counts: 딕셔너리 형태의 기대 값
-    """
-    row_selector = f"table tr:nth-child({row_index})"
-    ui_pattern_count = page.locator(f"{row_selector} td:nth-child(11)").text_content().strip()
-    ui_keyword_count = page.locator(f"{row_selector} td:nth-child(12)").text_content().strip()
-    ui_file_count = page.locator(f"{row_selector} td:nth-child(13)").text_content().strip()
-
-    assert expected_counts["pattern_count"] == ui_pattern_count, \
-        f"패턴 검출수 불일치: 기대값({expected_counts['pattern_count']}) != UI({ui_pattern_count})"
-    assert expected_counts["keyword_count"] == ui_keyword_count, \
-        f"키워드 검출수 불일치: 기대값({expected_counts['keyword_count']}) != UI({ui_keyword_count})"
-    assert expected_counts["file_count"] == ui_file_count, \
-        f"파일 개수 불일치: 기대값({expected_counts['file_count']}) != UI({ui_file_count})"
-
-@pytest.mark.dependency(
-  depends=[
-    "outlook_login",
-    "outlook_normal_mail",
-    "outlook_pattern_mail",
-    "outlook_keyword_mail",
-    "outlook_attach_mail"
-  ]
-)
-
-@allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Outlook mail Dlp Logging check")
-def test_compare_result_outlook_mail():
-    with sync_playwright() as p:
-        # 브라우저 실행
-        browser = p.chromium.launch(headless=True)
-
-        # BrowserContext 생성 (HTTPS 오류 무시 설정)
-        context = browser.new_context(ignore_https_errors=True)
-
-        # Context에서 새로운 페이지 생성
-        page = context.new_page()
-
-        try:
-
-            # DLP 서비스 로그인
-            page.goto("https://172.16.150.187:8443/login")  # DLP 제품 URL
-            page.fill("input[name='j_username']", "intsoosan")
-            page.fill("input[name='j_password']", "dkswjswmd4071*")
-            page.get_by_role("button", name="로그인").click()
-            time.sleep(2)
-
-            # 알림 팝업 처리
-            click_confirm_if_popup_exists(page, timeout=5000)
-
-            # 서비스 로그 페이지로 이동
-            page.goto("https://172.16.150.187:8443/log/service")
-
-            # 상세 검색
-            page.get_by_role("link", name="상세검색").click()
-            time.sleep(1)
-            # 서비스 선택
-            page.locator("#selectedDetail").select_option("service")
-            # 두레이게시판 선택
-            page.locator("#tokenfield2-tokenfield").click()
-            page.get_by_text("[웹메일] Outlook메일").click()
-            # 검색 클릭
-            page.get_by_role("button", name="검색").click()
-            time.sleep(5)
-
-            # 딕셔너리 기댓값과 UI 데이터를 비교
-            test_cases = [
-                {"row_index": 9, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"}},  # 일반 로깅
-                {"row_index": 7, "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"}},  # 개인정보 로깅
-                {"row_index": 5, "expected": {"pattern_count": "0", "keyword_count": "2", "file_count": "0"}},  # 키워드 로깅
-                {"row_index": 1, "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"}},  # 첨부파일 로깅
-            ]
-
-            for case in test_cases:
-                compare_ui_and_values(page, case["row_index"], case["expected"])
-
-            print("모든 값이 일치합니다.")
-
-
-        except Exception as e:
-
-            # 실패 시 스크린샷 저장
-            # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_outlook_mail")  # 공통 함수 호출
-            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # page.screenshot(path=screenshot_path, full_page=True)
-            print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="outlook_mail_failure_screenshot",
-                               attachment_type=allure.attachment_type.JPG)
-
-            raise
-
-        finally:
-            browser.close()
-
-

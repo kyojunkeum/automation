@@ -11,6 +11,8 @@ from .account import (
     DAUM_PASSWORD,
     OUTLOOK_ID,
     OUTLOOK_PASSWORD,
+    NAVERWORKS_ID,
+    NAVERWORKS_PASSWORD,
 )
 
 from .config import (
@@ -22,6 +24,8 @@ from .config import (
     DAUM_MAIL_URL,
     OUTLOOK_BASE_URL,
     OUTLOOK_MAIL_URL,
+    NAVERWORKS_BASE_URL,
+    NAVERWORKS_BOARD_URL,
     ALLURE_IP,
     DLP_NORMAL,
     DLP_PATTERNS,
@@ -39,6 +43,7 @@ from .config import (
     SERVICE_NAMES_NATE_MAIL,
     SERVICE_NAMES_DAUM_MAIL,
     SERVICE_NAMES_OUTLOOK_MAIL,
+    SERVICE_NAMES_NAVERWORKS_BOARD,
     ES_URL,
     ES_INDEX_PATTERN,
 )
@@ -62,6 +67,8 @@ __all__ = [
     "DAUM_MAIL_URL",
     "OUTLOOK_BASE_URL",
     "OUTLOOK_MAIL_URL",
+    "NAVERWORKS_BASE_URL",
+    "NAVERWORKS_BOARD_URL",
     "DOORAY_ID",
     "DOORAY_PASSWORD",
     "NATE_ID",
@@ -70,6 +77,8 @@ __all__ = [
     "DAUM_PASSWORD",
     "OUTLOOK_ID",
     "OUTLOOK_PASSWORD",
+    "NAVERWORKS_ID",
+    "NAVERWORKS_PASSWORD",
     "ALLURE_IP",
     "ALLURE_ID",
     "ALLURE_PASSWORD",
@@ -89,6 +98,7 @@ __all__ = [
     "SERVICE_NAMES_NATE_MAIL",
     "SERVICE_NAMES_DAUM_MAIL",
     "SERVICE_NAMES_OUTLOOK_MAIL",
+    "SERVICE_NAMES_NAVERWORKS_BOARD",
     "ES_URL",
     "ES_INDEX_PATTERN",
     "search_logs_from_es",

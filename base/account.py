@@ -42,13 +42,20 @@ DAUM_ID = os.getenv("DAUM_ID", "soosan_kjkeum@naver.com")
 DAUM_PASSWORD = os.getenv("DAUM_PASSWORD", "iwilltakeyou01!")
 
 # ============================
+# OUTLOOK_MAIL (브라우저) 접속 정보
+# ============================
+OUTLOOK_ID = os.getenv("OUTLOOK_ID", "soosan_kjkeum@naver.com")
+OUTLOOK_PASSWORD = os.getenv("OUTLOOK_PASSWORD", "iwilltakeyou01!")
+
+# ============================
+# NAVERWORKS 접속 정보
+# ============================
+NAVERWORKS_ID = os.getenv("NAVERWORKS_ID", "dlptest1@ewakerdlp.by-works.com")
+NAVERWORKS_PASSWORD = os.getenv("NAVERWORKS_PASSWORD", "S@@san_1004!")
+
+# ============================
 # YAHOO_MAIL 접속 정보
 # ============================
 # YAHOO_ID = os.getenv("YAHOO_ID", "soosan_kjkeum")
 # YAHOO_PASSWORD = os.getenv("YAHOO_PASSWORD", "iwilltakeyou01!")
 
-# ============================
-# OUTLOOK_MAIL (브라우저) 접속 정보
-# ============================
-OUTLOOK_ID = os.getenv("OUTLOOK_ID", "soosan_kjkeum@naver.com")
-OUTLOOK_PASSWORD = os.getenv("OUTLOOK_PASSWORD", "iwilltakeyou01!")

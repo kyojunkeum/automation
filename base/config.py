@@ -98,6 +98,14 @@ SERVICE_NAMES_DOORAY_CALENDAR = [
     SERVICE_NAME_DOORAY_CALENDAR_EN,
 ]
 
+SERVICE_NAME_NAVERWORKS_BOARD_KO = "네이버웍스 게시판"
+SERVICE_NAME_NAVERWORKS_BOARD_EN = "NaverWorks Board"
+SERVICE_NAMES_NAVERWORKS_BOARD = [
+    SERVICE_NAME_NAVERWORKS_BOARD_KO,
+    SERVICE_NAME_NAVERWORKS_BOARD_EN,
+]
+
+
 # ============================
 # 서비스 이름 (COMMENT)
 # ============================
@@ -129,6 +137,8 @@ DAUM_BASE_URL = os.getenv("DAUM_BASE_URL", "https://www.daum.net")
 DAUM_MAIL_URL = os.getenv("DAUM_MAIL_URL", "https://mail.daum.net")
 OUTLOOK_BASE_URL = os.getenv("OUTLOOK_BASE_URL", "https://outlook.office.com")
 OUTLOOK_MAIL_URL = os.getenv("OUTLOOK_MAIL_URL", "https://outlook.live.com/mail/0/")
+NAVERWORKS_BASE_URL = os.getenv("NAVERWORKS_BASE_URL", "https://naver.worksmobile.com")
+NAVERWORKS_BOARD_URL = os.getenv("NAVERWORKS_BOARD_URL", "https://board.worksmobile.com")
 # YAHOO_BASE_URL = os.getenv("YAHOO_BASE_URL", "https://mail.yahoo.com") 홈페이지 자동화 브라우저로 로그인 시 사용 불가
 # ============================
 # DLP 패턴, 키워드, 파일첨부 요소화

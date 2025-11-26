@@ -109,10 +109,16 @@ SERVICE_NAMES_DOORAY_DRIVE = [
 # ============================
 DOORAY_BASE_URL = os.getenv("DOORAY_BASE_URL", "https://ewalkerdlp.dooray.com")
 NATE_BASE_URL = os.getenv("NATE_BASE_URL", "https://www.nate.com")
-
+NATE_MAIL_URL = os.getenv("NATE_MAIL_URL", "https://mail3.nate.com")
 # ============================
 # DLP 패턴, 키워드, 파일첨부 요소화
 # ============================
+# 일반 로깅 테스트 값들
+DLP_NORMAL = [
+    "기본로깅테스트",
+    "Basic Logging Test",
+]
+
 # 패턴 테스트 값들 (개인정보, 민감정보, 계좌번호 등)
 DLP_PATTERNS = [
     "950621-1554381",

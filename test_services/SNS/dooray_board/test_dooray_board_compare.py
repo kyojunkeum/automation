@@ -51,8 +51,9 @@ def test_dooray_login():
 
         try:
             # 두레이 홈페이지 진입
-            page.goto(f"{DOORAY_BASE_URL}/")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/")
 
             # 아이디 및 패스워드 입력
             page.get_by_placeholder("아이디").click()
@@ -98,8 +99,9 @@ def test_dooray_board_normal(request):
         try:
 
             # 세션 유지한 채로 게시판 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/home")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/home")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/home")
 
             # 새글쓰기 클릭 시 새 창이 열리는 것을 대기
             page.get_by_test_id("HomeLnb_ContainedButton").click()
@@ -112,7 +114,7 @@ def test_dooray_board_normal(request):
             # 본문 입력
             editor_box = page.get_by_test_id("DoorayMDEditor").get_by_role("textbox")
             editor_box.click()
-            editor_box.fill("기본로깅테스트")
+            editor_box.fill("\n".join(DLP_NORMAL))
             time.sleep(1)
 
             # 저장 클릭
@@ -158,8 +160,9 @@ def test_dooray_board_pattern(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/home")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/home")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/home")
 
             # 새글쓰기 클릭 시 새 창이 열리는 것을 대기
             page.get_by_test_id("HomeLnb_ContainedButton").click()
@@ -218,8 +221,9 @@ def test_dooray_board_keyword(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/home")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/home")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/home")
 
             # 새글쓰기 클릭 시 새 창이 열리는 것을 대기
             page.get_by_test_id("HomeLnb_ContainedButton").click()
@@ -278,8 +282,9 @@ def test_dooray_board_attach(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/home")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/home")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/home")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             page.get_by_test_id("HomeLnb_ContainedButton").click()

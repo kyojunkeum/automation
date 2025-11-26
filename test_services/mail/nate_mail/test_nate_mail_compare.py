@@ -52,7 +52,6 @@ def test_nate_login():
         try:
             # 네이트 홈페이지 진입
             goto_and_wait(page, f"{NATE_BASE_URL}/")
-            time.sleep(1)
 
             # 아이디 및 패스워드 입력
             page.get_by_label("아이디 or @이하 모두 입력").click()
@@ -97,20 +96,22 @@ def test_nate_mail_normal(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://mail3.nate.com", wait_until="networkidle")
+            goto_and_wait(page, f"{NATE_MAIL_URL}/")
+            print("▶ 메일 페이지 로드 완료")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_role("link", name="내게쓰기").click()
-            time.sleep(2)
+            click_and_wait_navigation(page, role="link", name="내게쓰기")
+
 
             # 제목 입력
             page.get_by_text("제목을 입력해주세요").click()
             page.get_by_label("제목").fill("기본로깅테스트")
 
+
             # 본문 입력
             editor_box = page.locator("iframe[title=\"에디터\"]").content_frame.locator("#wc_pc")
             editor_box.click()
-            editor_box.fill("기본로깅테스트")
+            editor_box.fill("\n".join(DLP_NORMAL))
 
             # 보내기 클릭
             page.get_by_role("button", name="보내기").click()
@@ -155,11 +156,10 @@ def test_nate_mail_pattern(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://mail3.nate.com")
+            goto_and_wait(page, f"{NATE_MAIL_URL}/")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_role("link", name="내게쓰기").click()
-            time.sleep(1)
+            click_and_wait_navigation(page, role="link", name="내게쓰기")
 
             # 제목 입력
             page.get_by_text("제목을 입력해주세요").click()
@@ -213,11 +213,10 @@ def test_nate_mail_keyword(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://mail3.nate.com")
+            goto_and_wait(page, f"{NATE_MAIL_URL}/")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_role("link", name="내게쓰기").click()
-            time.sleep(1)
+            click_and_wait_navigation(page, role="link", name="내게쓰기")
 
             # 제목 입력
             page.get_by_text("제목을 입력해주세요").click()
@@ -271,11 +270,12 @@ def test_nate_mail_attach(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto("https://mail3.nate.com")
+            goto_and_wait(page, f"{NATE_MAIL_URL}/")
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_role("link", name="내게쓰기").click()
-            time.sleep(1)
+            click_and_wait_navigation(page, role="link", name="내게쓰기")
+            # page.get_by_role("link", name="내게쓰기").click()
+            # time.sleep(1)
 
             # 제목 입력
             page.get_by_text("제목을 입력해주세요").click()

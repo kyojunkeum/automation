@@ -9,43 +9,44 @@ from playwright.sync_api import Page, BrowserContext, TimeoutError
 import os
 from datetime import datetime
 
-def goto_and_wait(page: Page, url: str, timeout: int = 15000):
+def goto_and_wait(page: Page, url: str, timeout: int = 15000, retries: int = 2):
     """
-    URL 이동 후 페이지 로드(networkidle)까지 자동대기.
+    URL 이동 후 networkidle까지 대기.
+    실패하면 지정된 횟수만큼 재시도.
     """
-    page.goto(url, wait_until="networkidle", timeout=timeout)
-    return page
+    attempt = 0
 
-def click_and_wait_popup(page: Page, selector=None, role=None, name=None, timeout: int = 15000):
-    """
-    클릭 → 새 창이 열릴 때까지 대기 → 새 창 반환
+    while attempt <= retries:
+        try:
+            print(f"[goto_and_wait] 페이지 이동 시도 {attempt+1}/{retries+1}: {url}")
+            page.goto(url, wait_until="networkidle", timeout=timeout)
+            print("[goto_and_wait] 페이지 로드 성공")
+            return page
 
-    selector: CSS/xpath 가능
-    or role/name 조합도 가능
+        except TimeoutError:
+            attempt += 1
+            print(f"[goto_and_wait] 로드 실패 (Timeout). 재시도: {attempt}/{retries}")
+
+            if attempt > retries:
+                print("[goto_and_wait] 모든 재시도 실패 → 예외 발생")
+                raise
+
+            # 재시도 전 잠깐 대기
+            time.sleep(2)
+
+def click_and_wait_navigation(page: Page, selector=None, role=None, name=None,
+                              timeout: int = 15000):
     """
-    with page.expect_popup(timeout=timeout) as pop_info:
+    클릭 → 같은 탭에서 페이지 이동(expect_navigation) → 로드될 때까지 대기.
+    새 창(pop-up)이 아니라, 현재 탭에서 리디렉션되는 경우에 사용.
+    """
+    with page.expect_navigation(wait_until="networkidle", timeout=timeout):
         if selector:
             page.locator(selector).click()
         else:
             page.get_by_role(role, name=name).click()
 
-    popup_page = pop_info.value
-    popup_page.wait_for_load_state("networkidle")
-    return popup_page
-
-def wait_for_popup_if_exists(page: Page, timeout: int = 2000):
-    """
-    팝업이 '있으면' 잡아서 반환, 없으면 None 반환.
-    (예: 광고창, 안내창, 경고창 등)
-    """
-    try:
-        with page.expect_popup(timeout=timeout) as pop_info:
-            pass
-        popup_page = pop_info.value
-        popup_page.wait_for_load_state("networkidle")
-        return popup_page
-    except TimeoutError:
-        return None
+    return page  # 같은 Page 그대로 반환
 
 def click_confirm_if_popup_exists(page, timeout=3000):
     """

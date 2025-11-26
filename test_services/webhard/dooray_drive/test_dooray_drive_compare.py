@@ -51,8 +51,9 @@ def test_dooray_login():
 
         try:
             # 두레이 홈페이지 진입
-            page.goto(f"{DOORAY_BASE_URL}/")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/")
 
             # 아이디 및 패스워드 입력
             page.get_by_placeholder("아이디").click()
@@ -98,8 +99,9 @@ def test_dooray_drive_normal(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/drive")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/drive")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/drive")
 
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
@@ -157,8 +159,9 @@ def test_dooray_drive_pattern(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/drive")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/drive")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/drive")
 
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
@@ -216,8 +219,9 @@ def test_dooray_drive_keyword(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/drive")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/drive")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/drive")
 
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
@@ -275,8 +279,9 @@ def test_dooray_drive_Mix(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/drive")
-            time.sleep(3)
+            # page.goto(f"{DOORAY_BASE_URL}/drive")
+            # time.sleep(3)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}/drive")
 
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:

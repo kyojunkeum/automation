@@ -51,8 +51,8 @@ def test_dooray_login():
 
         try:
             # 두레이 홈페이지 진입
-            page.goto(f"{DOORAY_BASE_URL}/")
-            time.sleep(1)
+            goto_and_wait(page, f"{DOORAY_BASE_URL}")
+
 
             # 아이디 및 패스워드 입력
             page.get_by_placeholder("아이디").click()
@@ -118,7 +118,7 @@ def test_dooray_mail_normal(request):
 
             # 본문 입력
             page1.get_by_role("application").locator("div").nth(3).click()
-            page1.get_by_role("application").locator("div").nth(1).fill("기본로깅테스트\n\n")
+            page1.get_by_role("application").locator("div").nth(1).fill("\n".join(DLP_NORMAL))
             time.sleep(1)
 
             # 보내기 클릭
@@ -168,6 +168,7 @@ def test_dooray_mail_pattern(request):
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
             time.sleep(3)
+
 
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:

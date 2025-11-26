@@ -44,7 +44,7 @@ async def run_single_test(iteration_num):
     password = "dkswjswmd188*"
     network_port = 80
     internet_url = "https://www.daum.net"
-    daum_test_path = "D:/dlp_new_automation/test_services/mail/daum_mail/test_daum_mail_compare.py"
+    daum_test_path = "D:/dlp_new_automation/test_services/mail/daum_mail/stest_daum_mail_compare.py"
 
     try:
         # 장비 SSH 재부팅

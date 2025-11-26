@@ -34,3 +34,9 @@ DOORAY_PASSWORD = os.getenv("DOORAY_PASSWORD", "S@@san_1004!")
 # ============================
 NATE_ID = os.getenv("NATE_ID", "soosan_kjkeum")
 NATE_PASSWORD = os.getenv("NATE_PASSWORD", "iwilltakeyou02@")
+
+# ============================
+# DAUM_MAIL 접속 정보
+# ============================
+DAUM_ID = os.getenv("DAUM_ID", "soosan_kjkeum@naver.com")
+DAUM_PASSWORD = os.getenv("DAUM_PASSWORD", "iwilltakeyou01!")

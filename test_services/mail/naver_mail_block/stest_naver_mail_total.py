@@ -150,7 +150,7 @@ def test_naver_normal_send(request):
                 file_count="0",
                 compare_result="성공",
                 plugin_name="mail",
-                service_name="naver_mail",
+                service_name="naver_mail_block",
                 case_id="naver_normal_send"
             )
             print(f"json file saved at : {file_path}")
@@ -174,7 +174,7 @@ def test_naver_normal_send(request):
                 file_count="0",
                 compare_result="실패",
                 plugin_name="mail",
-                service_name="naver_mail",
+                service_name="naver_mail_block",
                 case_id="naver_normal_send"
             )
             print(f"json file saved at : {file_path}")

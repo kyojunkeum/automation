@@ -7,6 +7,8 @@ from .account import (
     EMAIL_RECEIVER,
     NATE_ID,
     NATE_PASSWORD,
+    DAUM_ID,
+    DAUM_PASSWORD,
 )
 
 from .config import (
@@ -14,6 +16,8 @@ from .config import (
     DOORAY_BASE_URL,
     NATE_BASE_URL,
     NATE_MAIL_URL,
+    DAUM_BASE_URL,
+    DAUM_MAIL_URL,
     ALLURE_IP,
     DLP_NORMAL,
     DLP_PATTERNS,
@@ -29,6 +33,7 @@ from .config import (
     SERVICE_NAMES_DOORAY_CALENDAR,
     SERVICE_NAMES_DOORAY_DRIVE,
     SERVICE_NAMES_NATE_MAIL,
+    SERVICE_NAMES_DAUM_MAIL,
     ES_URL,
     ES_INDEX_PATTERN,
 )
@@ -47,10 +52,14 @@ __all__ = [
     "DOORAY_BASE_URL",
     "NATE_BASE_URL",
     "NATE_MAIL_URL",
+    "DAUM_BASE_URL",
+    "DAUM_MAIL_URL",
     "DOORAY_ID",
     "DOORAY_PASSWORD",
     "NATE_ID",
     "NATE_PASSWORD",
+    "DAUM_ID",
+    "DAUM_PASSWORD",
     "ALLURE_IP",
     "ALLURE_ID",
     "ALLURE_PASSWORD",
@@ -68,6 +77,7 @@ __all__ = [
     "SERVICE_NAMES_DOORAY_CALENDAR",
     "SERVICE_NAMES_DOORAY_DRIVE",
     "SERVICE_NAMES_NATE_MAIL",
+    "SERVICE_NAMES_DAUM_MAIL",
     "ES_URL",
     "ES_INDEX_PATTERN",
     "search_logs_from_es",

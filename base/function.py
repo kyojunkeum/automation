@@ -50,15 +50,34 @@ def click_and_wait_navigation(page: Page, selector=None, role=None, name=None,
 
 def click_confirm_if_popup_exists(page, timeout=3000):
     """
-    '확인' 버튼을 가진 팝업이 뜨면 해당 버튼을 찾아 클릭한다.
-    나타나지 않으면(TimeoutError) 아무 처리도 하지 않는다.
+    '확인' 버튼이 포함된 팝업이 뜨면 자동으로 클릭하고,
+    없으면 스킵한다.
+
+    다양한 팝업 UI 패턴 지원:
+    - role=button name='확인'
+    - 텍스트 '확인'
+    - data-testid 등 fallback locator
     """
-    try:
-        page.wait_for_selector("role=button[name='확인']", timeout=timeout)
-        page.get_by_role("button", name="확인").click()
-        print("알림 팝업의 '확인' 버튼을 클릭했습니다.")
-    except TimeoutError:
-        print("알림 팝업(확인 버튼)이 나타나지 않았습니다.")
+
+    confirm_locators = [
+        page.get_by_role("button", name="확인"),
+        page.locator("button:has-text('확인')"),
+        page.locator("text=확인"),  # fallback
+    ]
+
+    for locator in confirm_locators:
+        try:
+            locator.wait_for(timeout=timeout)
+            locator.click()
+            print("✔ [DEBUG] 팝업 '확인' 버튼 클릭됨")
+            return True
+        except TimeoutError:
+            continue
+        except Exception:
+            continue
+
+    print("▶ [DEBUG] 팝업 없음 또는 '확인' 버튼 미발견 → 스킵")
+    return False
 
 def get_screenshot_path(test_name):
     screenshot_dir = os.path.join(os.getcwd(), "report", "screenshots")
@@ -163,11 +182,22 @@ def extract_counts_from_es_source(src: dict):
 
     return str(pattern_total), str(keyword_total), str(file_total)
 
+from typing import Dict, Any
 
-def compare_es_doc_with_expected(src: dict, expected: Dict[str, str]):
+def compare_es_doc_with_expected(src: dict, expected: Dict[str, Any]):
     """
     ES 한 건(_source)과 기대값 딕셔너리 비교.
+
+    expected 예시:
+    {
+        "pattern_count": "0",
+        "keyword_count": "2",
+        "file_count": "0",
+        # 선택사항:
+        # "tags": ["sns"]  또는 "tags": "sns"
+    }
     """
+    # 기존 카운트 비교
     pattern_count, keyword_count, file_count = extract_counts_from_es_source(src)
 
     exp_pattern = expected["pattern_count"]
@@ -186,6 +216,52 @@ def compare_es_doc_with_expected(src: dict, expected: Dict[str, str]):
         f"file_count mismatch: expected={exp_file}, actual={file_count}, "
         f"MessageID={src.get('MessageID')}"
     )
+
+    # 🔹 tags 비교 (옵션)
+    if "tags" in expected:
+        exp_tags = expected["tags"]
+        # 문자열로 한 개만 준 경우도 리스트로 통일
+        if isinstance(exp_tags, str):
+            exp_tags_list = [exp_tags]
+        else:
+            exp_tags_list = list(exp_tags)
+
+        actual_tags = src.get("tags", [])
+        # ES 쪽도 리스트가 아닐 경우 방어적으로 처리
+        if isinstance(actual_tags, str):
+            actual_tags_list = [actual_tags]
+        else:
+            actual_tags_list = list(actual_tags)
+
+        # 순서 상관 없이 동일한지 체크 (필요하면 subset 비교로 바꿀 수 있음)
+        assert set(actual_tags_list) == set(exp_tags_list), (
+            f"tags mismatch: expected={exp_tags_list}, actual={actual_tags_list}, "
+            f"MessageID={src.get('MessageID')}"
+        )
+
+
+# def compare_es_doc_with_expected(src: dict, expected: Dict[str, str]):
+#     """
+#     ES 한 건(_source)과 기대값 딕셔너리 비교.
+#     """
+#     pattern_count, keyword_count, file_count = extract_counts_from_es_source(src)
+#
+#     exp_pattern = expected["pattern_count"]
+#     exp_keyword = expected["keyword_count"]
+#     exp_file = expected["file_count"]
+#
+#     assert pattern_count == exp_pattern, (
+#         f"pattern_count mismatch: expected={exp_pattern}, actual={pattern_count}, "
+#         f"MessageID={src.get('MessageID')}"
+#     )
+#     assert keyword_count == exp_keyword, (
+#         f"keyword_count mismatch: expected={exp_keyword}, actual={keyword_count}, "
+#         f"MessageID={src.get('MessageID')}"
+#     )
+#     assert file_count == exp_file, (
+#         f"file_count mismatch: expected={exp_file}, actual={file_count}, "
+#         f"MessageID={src.get('MessageID')}"
+#     )
 
 
 def assert_es_logs(

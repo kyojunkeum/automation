@@ -1,7 +1,6 @@
 import os
 import time
 from datetime import datetime
-
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError

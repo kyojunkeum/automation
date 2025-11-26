@@ -50,9 +50,9 @@ def test_dooray_login():
 
         try:
             # 두레이 홈페이지 진입
-            # page.goto(f"{DOORAY_BASE_URL}/")
-            # time.sleep(1)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/")
+            page.goto(f"{DOORAY_BASE_URL}/")
+            time.sleep(1)
+
 
             # 아이디 및 패스워드 입력
             page.get_by_placeholder("아이디").click()
@@ -96,9 +96,9 @@ def test_dooray_board_comment_normal(request):
         try:
 
             # 세션 유지한 채로 게시판 페이지로 이동
-            # page.goto(f"{DOORAY_BASE_URL}/home")
-            # time.sleep(3)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/home")
+            page.goto(f"{DOORAY_BASE_URL}/home")
+            time.sleep(3)
+
 
             # 자유게시판으로 이동
             page.get_by_role("link", name="자유게시판").click()
@@ -159,9 +159,9 @@ def test_dooray_board_comment_pattern(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            # page.goto(f"{DOORAY_BASE_URL}/home")
-            # time.sleep(3)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/home")
+            page.goto(f"{DOORAY_BASE_URL}/home")
+            time.sleep(3)
+
 
             # 자유게시판으로 이동
             page.get_by_role("link", name="자유게시판").click()
@@ -221,9 +221,9 @@ def test_dooray_board_comment_keyword(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            # page.goto(f"{DOORAY_BASE_URL}/home")
-            # time.sleep(3)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/home")
+            page.goto(f"{DOORAY_BASE_URL}/home")
+            time.sleep(3)
+
 
             # 자유게시판으로 이동
             page.get_by_role("link", name="자유게시판").click()
@@ -282,9 +282,9 @@ def test_dooray_board_comment_attach(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            # page.goto(f"{DOORAY_BASE_URL}/home")
-            # time.sleep(3)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/home")
+            page.goto(f"{DOORAY_BASE_URL}/home")
+            time.sleep(3)
+
 
             # 자유게시판으로 이동
             page.get_by_role("link", name="자유게시판").click()

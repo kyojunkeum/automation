@@ -50,9 +50,9 @@ def test_dooray_login():
 
         try:
             # 두레이 홈페이지 진입
-            # page.goto(f"{DOORAY_BASE_URL}/")
-            # time.sleep(1)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/")
+            page.goto(f"{DOORAY_BASE_URL}/")
+            time.sleep(1)
+
 
             # 아이디 및 패스워드 입력
             page.get_by_placeholder("아이디").click()
@@ -97,9 +97,9 @@ def test_dooray_calendar_normal(request):
         try:
 
             # 세션 유지한 채로 캘린더 페이지로 이동
-            # page.goto(f"{DOORAY_BASE_URL}/calendar")
-            # time.sleep(3)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/calendar")
+            page.goto(f"{DOORAY_BASE_URL}/calendar")
+            time.sleep(3)
+
 
             # 새 일정 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -166,9 +166,9 @@ def test_dooray_calendar_pattern(request):
         try:
 
             # 세션 유지한 채로 캘린더 페이지로 이동
-            # page.goto(f"{DOORAY_BASE_URL}/calendar")
-            # time.sleep(3)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/calendar")
+            page.goto(f"{DOORAY_BASE_URL}/calendar")
+            time.sleep(3)
+
 
             # 새 일정 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -235,9 +235,9 @@ def test_dooray_calendar_keyword(request):
         try:
 
             # 세션 유지한 채로 캘린더 페이지로 이동
-            # page.goto(f"{DOORAY_BASE_URL}/calendar")
-            # time.sleep(3)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/calendar")
+            page.goto(f"{DOORAY_BASE_URL}/calendar")
+            time.sleep(3)
+
 
             # 새 일정 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:
@@ -304,9 +304,9 @@ def test_dooray_calendar_attach(request):
         try:
 
             # 세션 유지한 채로 캘린더 페이지로 이동
-            # page.goto(f"{DOORAY_BASE_URL}/calendar")
-            # time.sleep(3)
-            goto_and_wait(page, f"{DOORAY_BASE_URL}/calendar")
+            page.goto(f"{DOORAY_BASE_URL}/calendar")
+            time.sleep(3)
+
 
             # 새 일정 클릭 시 새 창이 열리는 것을 대기
             with page.expect_popup() as page1_info:

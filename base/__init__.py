@@ -39,7 +39,6 @@ from .function import (
     assert_es_logs_with_retry,
     goto_and_wait,
     click_and_wait_navigation,
-    click_and_wait_popup,
     get_screenshot_path,
     click_confirm_if_popup_exists,
 )
@@ -77,7 +76,6 @@ __all__ = [
     "EMAIL_RECEIVER",
     "goto_and_wait",
     "click_and_wait_navigation",
-    "click_and_wait_popup",
     "get_screenshot_path",
     "click_confirm_if_popup_exists",
 

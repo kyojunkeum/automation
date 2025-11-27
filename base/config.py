@@ -80,6 +80,13 @@ SERVICE_NAMES_OUTLOOK_MAIL = [
     SERVICE_NAME_OUTLOOK_MAIL_EN,
 ]
 
+SERVICE_NAME_NAVERWORKS_MAIL_KO = "네이버웍스 메일"
+SERVICE_NAME_NAVERWORKS_MAIL_EN = "NaverWorks"
+SERVICE_NAMES_NAVERWORKS_MAIL = [
+    SERVICE_NAME_NAVERWORKS_MAIL_KO,
+    SERVICE_NAME_NAVERWORKS_MAIL_EN,
+]
+
 # ============================
 # 서비스 이름 (MESSENGER)
 # ============================
@@ -185,6 +192,7 @@ DAUM_MAIL_URL = os.getenv("DAUM_MAIL_URL", "https://mail.daum.net")
 OUTLOOK_BASE_URL = os.getenv("OUTLOOK_BASE_URL", "https://outlook.office.com")
 OUTLOOK_MAIL_URL = os.getenv("OUTLOOK_MAIL_URL", "https://outlook.live.com/mail/0/")
 NAVERWORKS_BASE_URL = os.getenv("NAVERWORKS_BASE_URL", "https://naver.worksmobile.com")
+NAVERWORKS_MAIL_URL = os.getenv("NAVERWORKS_MAIL_URL", "https://mail.worksmobile.com")
 NAVERWORKS_BOARD_URL = os.getenv("NAVERWORKS_BOARD_URL", "https://board.worksmobile.com")
 NAVERWORKS_CALENDAR_URL = os.getenv("NAVERWORKS_CALENDAR_URL", "https://calendar.worksmobile.com")
 NOTION_BASE_URL = os.getenv("NOTION_BASE_URL", "https://www.notion.com")

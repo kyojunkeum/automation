@@ -80,6 +80,17 @@ SERVICE_NAMES_OUTLOOK_MAIL = [
     SERVICE_NAME_OUTLOOK_MAIL_EN,
 ]
 
+# ============================
+# 서비스 이름 (MESSENGER)
+# ============================
+SERVICE_NAME_DOORAY_MESSENGER_KO = "두레이 업무"
+SERVICE_NAME_DOORAY_MESSENGER_EN = "Doorey Tasks"
+SERVICE_NAMES_DOORAY_MESSENGER = [
+    SERVICE_NAME_DOORAY_MESSENGER_KO,
+    SERVICE_NAME_DOORAY_MESSENGER_EN,
+]
+
+
 
 # ============================
 # 서비스 이름 (SNS)
@@ -222,6 +233,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 TEST_FILES_DIR = BASE_DIR / "test_files"
 
 # 두레이 첨부파일 1개 일반 (상대 경로 기반)
+DLP_FILE_SINGLE = str(TEST_FILES_DIR / "test.jpeg")
+
 DLP_FILE = [
     str(TEST_FILES_DIR / "test.jpeg"),
 ]

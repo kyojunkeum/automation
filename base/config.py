@@ -200,6 +200,13 @@ SERVICE_NAMES_NAVERWORKS_DRIVE = [
     SERVICE_NAME_NAVERWORKS_DRIVE_EN,
 ]
 
+SERVICE_NAME_NAVERWORKS_SURVEY_KO = "네이버웍스 설문"
+SERVICE_NAME_NAVERWORKS_SURVEY_EN = "NaverWorks Survey"
+SERVICE_NAMES_NAVERWORKS_SURVEY = [
+    SERVICE_NAME_NAVERWORKS_SURVEY_KO,
+    SERVICE_NAME_NAVERWORKS_SURVEY_EN,
+]
+
 # ============================
 # 서비스별 접속 URL
 # ============================
@@ -216,6 +223,7 @@ NAVERWORKS_BOARD_URL = os.getenv("NAVERWORKS_BOARD_URL", "https://board.worksmob
 NAVERWORKS_CALENDAR_URL = os.getenv("NAVERWORKS_CALENDAR_URL", "https://calendar.worksmobile.com")
 NAVERWORKS_MESSENGER_URL = os.getenv("NAVERWORKS_MESSENGER_URL", "https://talk.worksmobile.com")
 NAVERWORKS_DRIVE_URL = os.getenv("NAVERWORKS_DRIVE_URL", "https://drive.worksmobile.com/drive/web/share/root")
+NAVERWORKS_SURVEY_URL = os.getenv("NAVERWORKS_SURVEY_URL", "https://form.worksmobile.com")
 # NOTION_BASE_URL = os.getenv("NOTION_BASE_URL", "https://www.notion.com")
 # YAHOO_BASE_URL = os.getenv("YAHOO_BASE_URL", "https://mail.yahoo.com") 홈페이지 자동화 브라우저로 로그인 시 사용 불가
 # ============================

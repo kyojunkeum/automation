@@ -292,28 +292,27 @@ def test_naverworks_board_comment_attach(request):
             time.sleep(1)
 
             # 댓글창 입력
-            comment_box = page.locator("#commentInput_9")
+            comment_box = page.locator(".ql-editor")
             comment_box.click()
             comment_box.fill("첨부파일로깅테스트")
             time.sleep(1)
 
-            # 파일 첨부
+            # 파일 첨부 클릭
             page.locator(".btn_attach_image").click()
-
-            # "내 PC" 클릭
-            try:
-                page.get_by_role("button", name="내 PC").click()
-                print("[DEBUG] '내 PC' 버튼 클릭 완료")
-            except Exception:
-                print("[WARN] '내 PC' 버튼을 찾지 못했습니다(무시).")
 
             # 파일 선택(file chooser) 발생 → 파일 첨부
             try:
                 with page.expect_file_chooser(timeout=5000) as fc_info:
-                    page.get_by_role("button", name="입력").click()
+                    page.get_by_role("button", name="내 PC").click()
                 file_chooser = fc_info.value
-
+                # 한 개 파일 첨부
                 file_chooser.set_files(DLP_FILE)
+
+                # # 여러 파일 첨부(2개)
+                # file_chooser.set_files(DLP_FILES)
+
+                time.sleep(3)
+                page.get_by_role("button", name="입력").click()
                 print(f"[DEBUG] 파일 첨부 완료: {DLP_FILE}")
 
             except Exception as e:

@@ -1,6 +1,5 @@
 import os
 import time
-from datetime import datetime
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
@@ -116,7 +115,7 @@ def test_naverworks_board_comment_normal(request):
             time.sleep(1)
 
             # 댓글창 입력
-            comment_box = page.locator("#commentInput_9")
+            comment_box = page.locator(".ql-editor")
             comment_box.click()
             comment_box.fill("\n".join(DLP_NORMAL))
             time.sleep(1)
@@ -174,7 +173,7 @@ def test_naverworks_board_comment_pattern(request):
             time.sleep(1)
 
             # 댓글창 입력
-            comment_box = page.locator("#commentInput_9")
+            comment_box = page.locator(".ql-editor")
             comment_box.click()
             comment_box.fill("\n".join(DLP_PATTERNS))
             time.sleep(1)
@@ -233,7 +232,7 @@ def test_naverworks_board_comment_keyword(request):
             time.sleep(1)
 
             # 댓글창 입력
-            comment_box = page.locator("#commentInput_9")
+            comment_box = page.locator(".ql-editor")
             comment_box.click()
             comment_box.fill("\n".join(DLP_KEYWORDS))
             time.sleep(1)

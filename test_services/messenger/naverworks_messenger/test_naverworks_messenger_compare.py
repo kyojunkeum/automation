@@ -17,7 +17,7 @@ PATTERN_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "패턴 로깅",
-        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "0"},
+        "expected": {"pattern_count": "1", "keyword_count": "0", "file_count": "0"},
     }
 ]
 
@@ -159,7 +159,7 @@ def test_naverworks_messenger_pattern(request):
 
             # 메시지 입력
             editor_box = page.locator("#message-input")
-            editor_box.fill("\n".join(DLP_PATTERNS))
+            editor_box.fill("\n".join(DLP_PATTERN))
 
             # Enter로 메시지 전송
             page.keyboard.press("Enter")

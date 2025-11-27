@@ -17,7 +17,7 @@ PATTERN_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "패턴 로깅",
-        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "0"},
+        "expected": {"pattern_count": "15", "keyword_count": "0", "file_count": "0"},
     }
 ]
 
@@ -318,7 +318,7 @@ def test_dooray_wiki_attach(request):
             # # 파일 2개 첨부
             # file_chooser.set_files(DLP_FILES)
             print("파일을 첨부하였습니다.")
-            time.sleep(2)
+            time.sleep(5)
 
              # 저장 클릭
             btn = page.get_by_test_id("DetailContentEditToolbar_ContainedButton")

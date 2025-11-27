@@ -5,7 +5,6 @@ import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
 from base import *
 
-
 NORMAL_LOGGING_CASE = [
     {
         "hit_index": 0,
@@ -83,10 +82,11 @@ def test_dooray_login():
         finally:
             browser.close()
 
+
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Dooray Mail Normal Test")
-@pytest.mark.dependency(name="dooray_mail_normal")
-def test_dooray_mail_normal(request):
+@allure.step("Dooray Wiki Normal Test")
+@pytest.mark.dependency(name="dooray_wiki_normal")
+def test_dooray_wiki_normal(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -97,41 +97,36 @@ def test_dooray_mail_normal(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
+            page.goto(f"{DOORAY_BASE_URL}/wiki/")
             time.sleep(3)
 
-            # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            with page.expect_popup() as page1_info:
-                page.get_by_test_id("openNewMailWriteForm").click()
-            page1 = page1_info.value
-            time.sleep(2)
-
-            # 수신자 입력
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill(EMAIL_RECEIVER)
-            page1.wait_for_timeout(3000)  # 입력 후 잠시 대기
-            print("수신자 정보를 입력하였습니다.")
+            # 새 페이지 클릭
+            page.get_by_test_id("wiki-LNB-newPageButton").click()
+            time.sleep(1)
 
             # 제목 입력
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("기본로깅테스트")
+            page.get_by_test_id("WikiDetailHeaderEdit_BottomLinedTextField").click()
+            page.get_by_test_id("WikiDetailHeaderEdit_BottomLinedTextField").fill("기본로깅테스트")
+            time.sleep(1)
 
             # 본문 입력
-            page1.get_by_role("application").locator("div").nth(3).click()
-            page1.get_by_role("application").locator("div").nth(1).fill("\n".join(DLP_NORMAL))
+            editor_box = page.get_by_test_id("DoorayMDEditor").get_by_role("textbox")
+            editor_box.click()
+            editor_box.fill("\n".join(DLP_NORMAL))
             time.sleep(1)
 
-            # 보내기 클릭
-            page1.get_by_test_id("MailWriteFooter_ContainedButton").click()
-            time.sleep(1)
-            page1.get_by_test_id("MailWritePreviewModal_ContainedButton").click()
+            # # 파일 첨부
+            # page.get_by_test_id("DetailContentEditToolbar_GhostButton").click()
+
+            # 저장 클릭
+            page.get_by_test_id("DetailContentEditToolbar_ContainedButton").click()
 
             # 대기
             page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAMES_DOORAY_MAIL,
+                service_name=SERVICE_NAMES_DOORAY_WIKI,
                 test_cases=NORMAL_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -140,11 +135,11 @@ def test_dooray_mail_normal(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_mail_normal")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_wiki_normal")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_mail_normal_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_wiki_normal_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -153,9 +148,9 @@ def test_dooray_mail_normal(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray Mail Pattern Test")
-@pytest.mark.dependency(name="dooray_mail_pattern")
-def test_dooray_mail_pattern(request):
+@allure.step("Dooray Wiki Pattern Test")
+@pytest.mark.dependency(name="dooray_wiki_pattern")
+def test_dooray_wiki_pattern(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -166,49 +161,36 @@ def test_dooray_mail_pattern(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
+            page.goto(f"{DOORAY_BASE_URL}/wiki/")
             time.sleep(3)
 
-
-            # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            with page.expect_popup() as page1_info:
-                page.get_by_test_id("openNewMailWriteForm").click()
-            page1 = page1_info.value
-            time.sleep(2)
-
-            # 수신자 입력
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill(EMAIL_RECEIVER)
-            page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
-            print("수신자 정보를 입력하였습니다.")
-
+            # 새 페이지 클릭
+            page.get_by_test_id("wiki-LNB-newPageButton").click()
+            time.sleep(1)
 
             # 제목 입력
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("개인정보로깅테스트")
-
-            # 본문 클릭
-            page1.get_by_role("application").locator("div").nth(3).click()
-
-            # 기존 내용 모두 삭제
-            target_box = page1.get_by_role("application").locator("div").nth(1)
-            target_box.click()
-
-            # 패턴 리스트 여러 개를 줄바꿈으로 입력
-            target_box.fill("\n".join(DLP_PATTERNS))
+            page.get_by_test_id("WikiDetailHeaderEdit_BottomLinedTextField").click()
+            page.get_by_test_id("WikiDetailHeaderEdit_BottomLinedTextField").fill("개인정보로깅테스트")
             time.sleep(1)
 
-            # 보내기 클릭
-            page1.get_by_test_id("MailWriteFooter_ContainedButton").click()
+            # 본문 입력
+            editor_box = page.get_by_test_id("DoorayMDEditor").get_by_role("textbox")
+            editor_box.click()
+            editor_box.fill("\n".join(DLP_PATTERNS))
             time.sleep(1)
-            page1.get_by_test_id("MailWritePreviewModal_ContainedButton").click()
 
-            # 5초 대기
+            # # 파일 첨부
+            # page.get_by_test_id("DetailContentEditToolbar_GhostButton").click()
+
+            # 저장 클릭
+            page.get_by_test_id("DetailContentEditToolbar_ContainedButton").click()
+
+            # 대기
             page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAMES_DOORAY_MAIL,
+                service_name=SERVICE_NAMES_DOORAY_WIKI,
                 test_cases=PATTERN_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -217,11 +199,11 @@ def test_dooray_mail_pattern(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_mail_pattern")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_wiki_pattern")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_mail_pattern_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_wiki_pattern_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -229,10 +211,11 @@ def test_dooray_mail_pattern(request):
         finally:
             browser.close()
 
+
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray Mail Keyword Test")
-@pytest.mark.dependency(name="dooray_mail_keyword")
-def test_dooray_mail_keyword(request):
+@allure.step("Dooray Wiki Keyword Test")
+@pytest.mark.dependency(name="dooray_wiki_keyword")
+def test_dooray_wiki_keyword(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -243,48 +226,36 @@ def test_dooray_mail_keyword(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
+            page.goto(f"{DOORAY_BASE_URL}/wiki/")
             time.sleep(3)
 
-            # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            with page.expect_popup() as page1_info:
-                page.get_by_test_id("openNewMailWriteForm").click()
-            page1 = page1_info.value
-            time.sleep(2)
-
-            # 수신자 입력
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill(EMAIL_RECEIVER)
-            page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
-            print("수신자 정보를 입력하였습니다.")
-
+            # 새 페이지 클릭
+            page.get_by_test_id("wiki-LNB-newPageButton").click()
+            time.sleep(1)
 
             # 제목 입력
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("키워드로깅테스트")
-
-            # 본문 클릭
-            page1.get_by_role("application").locator("div").nth(3).click()
-
-            # 기존 내용 모두 삭제
-            target_box = page1.get_by_role("application").locator("div").nth(1)
-            target_box.click()
-
-            # 패턴 리스트 여러 개를 줄바꿈으로 입력
-            target_box.fill("\n".join(DLP_KEYWORDS))
+            page.get_by_test_id("WikiDetailHeaderEdit_BottomLinedTextField").click()
+            page.get_by_test_id("WikiDetailHeaderEdit_BottomLinedTextField").fill("키워드로깅테스트")
             time.sleep(1)
 
-            # 보내기 클릭
-            page1.get_by_test_id("MailWriteFooter_ContainedButton").click()
+            # 본문 입력
+            editor_box = page.get_by_test_id("DoorayMDEditor").get_by_role("textbox")
+            editor_box.click()
+            editor_box.fill("\n".join(DLP_KEYWORDS))
             time.sleep(1)
-            page1.get_by_test_id("MailWritePreviewModal_ContainedButton").click()
 
-            # 5초 대기
+            # # 파일 첨부
+            # page.get_by_test_id("DetailContentEditToolbar_GhostButton").click()
+
+            # 저장 클릭
+            page.get_by_test_id("DetailContentEditToolbar_ContainedButton").click()
+
+            # 대기
             page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAMES_DOORAY_MAIL,
+                service_name=SERVICE_NAMES_DOORAY_WIKI,
                 test_cases=KEYWORD_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -293,11 +264,12 @@ def test_dooray_mail_keyword(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_mail_keyword")
+            screenshot_path = get_screenshot_path("test_dooray_wiki_keyword")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_mail_keyword_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_wiki_keyword_failure_screenshot",
+                               attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -306,9 +278,9 @@ def test_dooray_mail_keyword(request):
             browser.close()
 
 @allure.severity(allure.severity_level.BLOCKER)
-@allure.step("Dooray Mail Attach Test")
-@pytest.mark.dependency(name="dooray_mail_attach")
-def test_dooray_mail_attach(request):
+@allure.step("Dooray Wiki Attach Test")
+@pytest.mark.dependency(name="dooray_wiki_attach")
+def test_dooray_wiki_attach(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")
@@ -319,41 +291,53 @@ def test_dooray_mail_attach(request):
         try:
 
             # 세션 유지한 채로 메일 페이지로 이동
-            page.goto(f"{DOORAY_BASE_URL}/mail/systems/inbox")
+            page.goto(f"{DOORAY_BASE_URL}/wiki/")
             time.sleep(3)
 
-            # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
-            with page.expect_popup() as page1_info:
-                page.get_by_test_id("openNewMailWriteForm").click()
-            page1 = page1_info.value
-            time.sleep(2)
-
-            # 수신자 입력
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.click()
-            page1.get_by_test_id("MemberAutocompleteInput_TextField").first.fill(EMAIL_RECEIVER)
-            page1.wait_for_timeout(1000)  # 입력 후 잠시 대기
-            print("수신자 정보를 입력하였습니다.")
+            # 새 페이지 클릭
+            page.get_by_test_id("wiki-LNB-newPageButton").click()
+            time.sleep(1)
 
             # 제목 입력
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").click()
-            page1.get_by_test_id("MailWriteHeader_BottomLinedTextField").fill("첨부파일로깅테스트")
+            page.get_by_test_id("WikiDetailHeaderEdit_BottomLinedTextField").click()
+            page.get_by_test_id("WikiDetailHeaderEdit_BottomLinedTextField").fill("첨부파일로깅테스트")
+            time.sleep(1)
+
+            # 본문 입력
+            editor_box = page.get_by_test_id("DoorayMDEditor").get_by_role("textbox")
+            editor_box.click()
+            editor_box.fill("첨부파일로깅테스트")
+            time.sleep(1)
 
             # 파일 첨부
-            with page1.expect_file_chooser() as fc_info:
-                page1.get_by_test_id("MailWriteHeader_GhostButton").click()
+            with page.expect_file_chooser() as fc_info:
+                page.get_by_test_id("DetailContentEditToolbar_GhostButton").click()
             file_chooser = fc_info.value
             # 파일 1개 첨부
             file_chooser.set_files(DLP_FILE)
             # # 파일 2개 첨부
             # file_chooser.set_files(DLP_FILES)
             print("파일을 첨부하였습니다.")
+            time.sleep(2)
 
-            # 5초 대기
-            page.wait_for_timeout(10000)
+             # 저장 클릭
+            btn = page.get_by_test_id("DetailContentEditToolbar_ContainedButton")
+
+            if btn.count() > 0:
+                try:
+                    btn.click()
+                    print("✔ [DEBUG] DetailContentEditToolbar_ContainedButton 클릭됨")
+                except Exception as e:
+                    print(f"⚠ [WARN] 클릭 중 오류 발생: {e}")
+            else:
+                print("▶ [DEBUG] DetailContentEditToolbar_ContainedButton 없음 → 스킵")
+
+            # 대기
+            page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAMES_DOORAY_MAIL,
+                service_name=SERVICE_NAMES_DOORAY_WIKI,
                 test_cases=FILE_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -362,18 +346,15 @@ def test_dooray_mail_attach(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_dooray_mail_attach")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_dooray_wiki_attach")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="dooray_mail_attach_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="dooray_wiki_attach_failure_screenshot",
+                               attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
 
-
         finally:
             browser.close()
-
-
-

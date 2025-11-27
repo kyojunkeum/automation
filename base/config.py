@@ -193,6 +193,12 @@ SERVICE_NAMES_DOORAY_DRIVE = [
     SERVICE_NAME_DOORAY_DRIVE_EN,
 ]
 
+SERVICE_NAME_NAVERWORKS_DRIVE_KO = "네이버웍스 드라이브"
+SERVICE_NAME_NAVERWORKS_DRIVE_EN = "NaverWorks Drive"
+SERVICE_NAMES_NAVERWORKS_DRIVE = [
+    SERVICE_NAME_NAVERWORKS_DRIVE_KO,
+    SERVICE_NAME_NAVERWORKS_DRIVE_EN,
+]
 
 # ============================
 # 서비스별 접속 URL
@@ -209,7 +215,8 @@ NAVERWORKS_MAIL_URL = os.getenv("NAVERWORKS_MAIL_URL", "https://mail.worksmobile
 NAVERWORKS_BOARD_URL = os.getenv("NAVERWORKS_BOARD_URL", "https://board.worksmobile.com")
 NAVERWORKS_CALENDAR_URL = os.getenv("NAVERWORKS_CALENDAR_URL", "https://calendar.worksmobile.com")
 NAVERWORKS_MESSENGER_URL = os.getenv("NAVERWORKS_MESSENGER_URL", "https://talk.worksmobile.com")
-NOTION_BASE_URL = os.getenv("NOTION_BASE_URL", "https://www.notion.com")
+NAVERWORKS_DRIVE_URL = os.getenv("NAVERWORKS_DRIVE_URL", "https://drive.worksmobile.com/drive/web/share/root")
+# NOTION_BASE_URL = os.getenv("NOTION_BASE_URL", "https://www.notion.com")
 # YAHOO_BASE_URL = os.getenv("YAHOO_BASE_URL", "https://mail.yahoo.com") 홈페이지 자동화 브라우저로 로그인 시 사용 불가
 # ============================
 # DLP 패턴, 키워드, 파일첨부 요소화

@@ -85,8 +85,8 @@ def test_dooray_login():
         finally:
             browser.close()
 
-@allure.severity(allure.severity_level.NORMAL)
-@allure.step("Dooray drive Normal Test")
+@allure.severity(allure.severity_level.BLOCKER)
+@allure.step("Dooray Drive Normal Test")
 @pytest.mark.dependency(name="dooray_drive_normal")
 def test_dooray_drive_normal(request):
     with sync_playwright() as p:
@@ -145,8 +145,8 @@ def test_dooray_drive_normal(request):
         finally:
             browser.close()
 
-@allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray drive pattern Test")
+@allure.severity(allure.severity_level.BLOCKER)
+@allure.step("Dooray Drive Pattern Test")
 @pytest.mark.dependency(name="dooray_drive_pattern")
 def test_dooray_drive_pattern(request):
     with sync_playwright() as p:
@@ -205,8 +205,8 @@ def test_dooray_drive_pattern(request):
         finally:
             browser.close()
 
-@allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray drive Keyword Test")
+@allure.severity(allure.severity_level.BLOCKER)
+@allure.step("Dooray Drive Keyword Test")
 @pytest.mark.dependency(name="dooray_drive_keyword")
 def test_dooray_drive_keyword(request):
     with sync_playwright() as p:
@@ -265,10 +265,10 @@ def test_dooray_drive_keyword(request):
         finally:
             browser.close()
 
-@allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray drive Mix Test")
-@pytest.mark.dependency(name="dooray_drive_Mix")
-def test_dooray_drive_Mix(request):
+@allure.severity(allure.severity_level.BLOCKER)
+@allure.step("Dooray Drive Mix Test")
+@pytest.mark.dependency(name="dooray_drive_mix")
+def test_dooray_drive_mix(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "dooraystorageState.json")

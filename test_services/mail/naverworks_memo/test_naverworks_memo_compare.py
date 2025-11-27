@@ -88,9 +88,9 @@ def test_naverworks_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Naverworks Mail Normal Test")
-@pytest.mark.dependency(name="naverworks_mail_normal")
-def test_naverworks_mail_normal(request):
+@allure.step("Naverworks Memo Normal Test")
+@pytest.mark.dependency(name="naverworks_memo_normal")
+def test_naverworks_memo_normal(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "naverworksstorageState.json")
@@ -106,13 +106,9 @@ def test_naverworks_mail_normal(request):
 
             # 메일쓰기
             with page.expect_popup() as page1_info:
-                page.get_by_role("link", name="메일쓰기").click()
+                page.get_by_role("link", name="메모쓰기").click()
             page1 = page1_info.value
             time.sleep(2)
-
-            # 수신자 입력
-            page1.get_by_role("combobox", name="받는사람").fill(EMAIL_RECEIVER)
-            time.sleep(1)
 
             # 제목 입력
             page1.get_by_role("textbox", name="제목").fill("기본로깅테스트")
@@ -124,14 +120,14 @@ def test_naverworks_mail_normal(request):
             time.sleep(1)
 
             # 저장 클릭
-            page1.get_by_role("button", name="보내기").click()
+            page1.get_by_role("button", name="저장", exact=True).click()
 
             # 대기
             page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAMES_NAVERWORKS_MAIL,
+                service_name=SERVICE_NAMES_NAVERWORKS_MEMO,
                 test_cases=NORMAL_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -140,11 +136,11 @@ def test_naverworks_mail_normal(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_naverworks_mail_normal")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_naverworks_memo_normal")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="naverworks_mail_normal_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="naverworks_memo_normal_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -153,10 +149,11 @@ def test_naverworks_mail_normal(request):
             browser.close()
 
 
+
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Naverworks Mail Pattern Test")
-@pytest.mark.dependency(name="naverworks_mail_pattern")
-def test_naverworks_mail_pattern(request):
+@allure.step("Naverworks Memo Pattern Test")
+@pytest.mark.dependency(name="naverworks_memo_pattern")
+def test_naverworks_memo_pattern(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "naverworksstorageState.json")
@@ -172,13 +169,9 @@ def test_naverworks_mail_pattern(request):
 
             # 메일쓰기
             with page.expect_popup() as page1_info:
-                page.get_by_role("link", name="메일쓰기").click()
+                page.get_by_role("link", name="메모쓰기").click()
             page1 = page1_info.value
             time.sleep(2)
-
-            # 수신자 입력
-            page1.get_by_role("combobox", name="받는사람").fill(EMAIL_RECEIVER)
-            time.sleep(1)
 
             # 제목 입력
             page1.get_by_role("textbox", name="제목").fill("개인정보로깅테스트")
@@ -190,14 +183,14 @@ def test_naverworks_mail_pattern(request):
             time.sleep(1)
 
             # 저장 클릭
-            page1.get_by_role("button", name="보내기").click()
+            page1.get_by_role("button", name="저장", exact=True).click()
 
             # 대기
             page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAMES_NAVERWORKS_MAIL,
+                service_name=SERVICE_NAMES_NAVERWORKS_MEMO,
                 test_cases=PATTERN_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -206,11 +199,11 @@ def test_naverworks_mail_pattern(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_naverworks_mail_pattern")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_naverworks_memo_pattern")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="naverworks_mail_pattern_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="naverworks_memo_pattern_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -220,9 +213,9 @@ def test_naverworks_mail_pattern(request):
 
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Naverworks Mail Keyword Test")
-@pytest.mark.dependency(name="naverworks_mail_keyword")
-def test_naverworks_mail_keyword(request):
+@allure.step("Naverworks Memo Keyword Test")
+@pytest.mark.dependency(name="naverworks_memo_keyword")
+def test_naverworks_memo_keyword(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "naverworksstorageState.json")
@@ -238,13 +231,9 @@ def test_naverworks_mail_keyword(request):
 
             # 메일쓰기
             with page.expect_popup() as page1_info:
-                page.get_by_role("link", name="메일쓰기").click()
+                page.get_by_role("link", name="메모쓰기").click()
             page1 = page1_info.value
             time.sleep(2)
-
-            # 수신자 입력
-            page1.get_by_role("combobox", name="받는사람").fill(EMAIL_RECEIVER)
-            time.sleep(1)
 
             # 제목 입력
             page1.get_by_role("textbox", name="제목").fill("키워드로깅테스트")
@@ -256,14 +245,14 @@ def test_naverworks_mail_keyword(request):
             time.sleep(1)
 
             # 저장 클릭
-            page1.get_by_role("button", name="보내기").click()
+            page1.get_by_role("button", name="저장", exact=True).click()
 
             # 대기
             page.wait_for_timeout(5000)
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAMES_NAVERWORKS_MAIL,
+                service_name=SERVICE_NAMES_NAVERWORKS_MEMO,
                 test_cases=KEYWORD_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -272,11 +261,11 @@ def test_naverworks_mail_keyword(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_naverworks_mail_keyword")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_naverworks_memo_keyword")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="naverworks_mail_keyword_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="naverworks_memo_keyword_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -286,9 +275,9 @@ def test_naverworks_mail_keyword(request):
 
 
 @allure.severity(allure.severity_level.BLOCKER)
-@allure.step("Naverworks Mail Attach Test")
-@pytest.mark.dependency(name="naverworks_mail_attach")
-def test_naverworks_mail_attach(request):
+@allure.step("Naverworks Memo Attach Test")
+@pytest.mark.dependency(name="naverworks_memo_attach")
+def test_naverworks_memo_attach(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "naverworksstorageState.json")
@@ -304,13 +293,9 @@ def test_naverworks_mail_attach(request):
 
             # 메일쓰기
             with page.expect_popup() as page1_info:
-                page.get_by_role("link", name="메일쓰기").click()
+                page.get_by_role("link", name="메모쓰기").click()
             page1 = page1_info.value
             time.sleep(2)
-
-            # 수신자 입력
-            page1.get_by_role("combobox", name="받는사람").fill(EMAIL_RECEIVER)
-            time.sleep(1)
 
             # 제목 입력
             page1.get_by_role("textbox", name="제목").fill("첨부파일로깅테스트")
@@ -336,7 +321,7 @@ def test_naverworks_mail_attach(request):
 
             # 저장 클릭
             try:
-                page1.get_by_role("button", name="보내기").click(timeout=1500)
+                page1.get_by_role("button", name="저장", exact=True).click(timeout=1500)
                 print("✔ [DEBUG] 보내기 클릭됨")
             except:
                 print("▶ [DEBUG] 보내기 없음 → 스킵")
@@ -346,7 +331,7 @@ def test_naverworks_mail_attach(request):
 
             # ===== 여기서 ES 검증 반복 호출 =====
             assert_es_logs_with_retry(
-                service_name=SERVICE_NAMES_NAVERWORKS_MAIL,
+                service_name=SERVICE_NAMES_NAVERWORKS_MEMO,
                 test_cases=FILE_LOGGING_CASE,
                 size=1,
                 max_attempts=3,  # 총 3번 시도
@@ -355,11 +340,11 @@ def test_naverworks_mail_attach(request):
 
         except Exception as e:
             # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_naverworks_mail_attach")  # 공통 함수 호출
+            screenshot_path = get_screenshot_path("test_naverworks_memo_attach")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
             # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="naverworks_mail_attach_failure_screenshot", attachment_type=allure.attachment_type.JPG)
+            allure.attach.file(screenshot_path, name="naverworks_memo_attach_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")

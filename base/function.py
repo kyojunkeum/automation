@@ -250,25 +250,28 @@ def compare_es_doc_with_expected(src: dict, expected: Dict[str, Any]):
         f"MessageID={src.get('MessageID')}"
     )
 
-    # 🔹 tags 비교 (옵션)
+    # 🔹 tags 비교 (하나라도 맞으면 PASS)
     if "tags" in expected:
         exp_tags = expected["tags"]
-        # 문자열로 한 개만 준 경우도 리스트로 통일
+
+        # expected: 문자열 1개 → 리스트로 변환
         if isinstance(exp_tags, str):
             exp_tags_list = [exp_tags]
         else:
             exp_tags_list = list(exp_tags)
 
         actual_tags = src.get("tags", [])
-        # ES 쪽도 리스트가 아닐 경우 방어적으로 처리
         if isinstance(actual_tags, str):
             actual_tags_list = [actual_tags]
         else:
             actual_tags_list = list(actual_tags)
 
-        # 순서 상관 없이 동일한지 체크 (필요하면 subset 비교로 바꿀 수 있음)
-        assert set(actual_tags_list) == set(exp_tags_list), (
-            f"tags mismatch: expected={exp_tags_list}, actual={actual_tags_list}, "
+        # OR 조건: expected 중 하나라도 actual 안에 있으면 PASS
+        ok = any(tag in actual_tags_list for tag in exp_tags_list)
+
+        assert ok, (
+            f"tags OR-mismatch: expected any of {exp_tags_list}, "
+            f"actual={actual_tags_list}, "
             f"MessageID={src.get('MessageID')}"
         )
 

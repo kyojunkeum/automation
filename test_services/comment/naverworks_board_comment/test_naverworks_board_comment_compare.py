@@ -9,7 +9,7 @@ NORMAL_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "기본 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0", "tags" : ["comment"]},
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0", "tags" : ["comment", "댓글"]},
     }
 ]
 
@@ -17,7 +17,7 @@ PATTERN_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "패턴 로깅",
-        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "0", "tags" : ["comment"]},
+        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "0", "tags" : ["comment", "댓글"]},
     }
 ]
 
@@ -25,7 +25,7 @@ KEYWORD_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "키워드 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0", "tags" : ["comment"]},
+        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0", "tags" : ["comment", "댓글"]},
     }
 ]
 

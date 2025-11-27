@@ -307,7 +307,6 @@ def test_dooray_board_attach(request):
             # 한 개 파일 첨부
             file_chooser.set_files(DLP_FILE)
 
-
             # # 여러 파일 첨부(2개)
             # file_chooser.set_files(DLP_FILES)
 

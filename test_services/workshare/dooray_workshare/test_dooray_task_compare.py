@@ -49,7 +49,7 @@ def test_dooray_login():
         try:
             # 두레이 홈페이지 진입
             page.goto(f"{DOORAY_BASE_URL}/")
-            time.sleep(1)
+            time.sleep(3)
 
 
             # 아이디 및 패스워드 입력

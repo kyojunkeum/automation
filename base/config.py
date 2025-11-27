@@ -104,6 +104,12 @@ SERVICE_NAMES_DOORAY_MESSENGER = [
     SERVICE_NAME_DOORAY_MESSENGER_EN,
 ]
 
+SERVICE_NAME_NAVERWORKS_MESSENGER_KO = "네이버웍스 메시지"
+SERVICE_NAME_NAVERWORKS_MESSENGER_EN = "NaverWorks Message"
+SERVICE_NAMES_NAVERWORKS_MESSENGER = [
+    SERVICE_NAME_NAVERWORKS_MESSENGER_KO,
+    SERVICE_NAME_NAVERWORKS_MESSENGER_EN,
+]
 
 
 # ============================
@@ -202,6 +208,7 @@ NAVERWORKS_BASE_URL = os.getenv("NAVERWORKS_BASE_URL", "https://naver.worksmobil
 NAVERWORKS_MAIL_URL = os.getenv("NAVERWORKS_MAIL_URL", "https://mail.worksmobile.com")
 NAVERWORKS_BOARD_URL = os.getenv("NAVERWORKS_BOARD_URL", "https://board.worksmobile.com")
 NAVERWORKS_CALENDAR_URL = os.getenv("NAVERWORKS_CALENDAR_URL", "https://calendar.worksmobile.com")
+NAVERWORKS_MESSENGER_URL = os.getenv("NAVERWORKS_MESSENGER_URL", "https://talk.worksmobile.com")
 NOTION_BASE_URL = os.getenv("NOTION_BASE_URL", "https://www.notion.com")
 # YAHOO_BASE_URL = os.getenv("YAHOO_BASE_URL", "https://mail.yahoo.com") 홈페이지 자동화 브라우저로 로그인 시 사용 불가
 # ============================

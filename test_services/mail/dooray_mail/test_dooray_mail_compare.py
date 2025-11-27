@@ -52,6 +52,7 @@ def test_dooray_login():
         try:
             # 두레이 홈페이지 진입
             goto_and_wait(page, f"{DOORAY_BASE_URL}")
+            time.sleep(3)
 
 
             # 아이디 및 패스워드 입력

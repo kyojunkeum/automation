@@ -83,7 +83,7 @@ def test_dooray_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Dooray board Comment normal Test")
+@allure.step("Dooray Board Comment Normal Test")
 def test_dooray_board_comment_normal(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
@@ -146,7 +146,7 @@ def test_dooray_board_comment_normal(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray board comment Pattern Test")
+@allure.step("Dooray Board Comment Pattern Test")
 def test_dooray_board_comment_pattern(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
@@ -208,7 +208,7 @@ def test_dooray_board_comment_pattern(request):
             browser.close()
 
 @allure.severity(allure.severity_level.CRITICAL)
-@allure.step("Dooray board comment Keyword Send Test")
+@allure.step("Dooray Noard Comment Keyword Test")
 def test_dooray_board_comment_keyword(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
@@ -269,7 +269,7 @@ def test_dooray_board_comment_keyword(request):
             browser.close()
 
 @allure.severity(allure.severity_level.BLOCKER)
-@allure.step("Dooray board comment attach Test")
+@allure.step("Dooray Board Comment Attach Test")
 def test_dooray_board_comment_attach(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성

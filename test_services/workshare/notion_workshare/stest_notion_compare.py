@@ -1,6 +1,5 @@
 import os
 import time
-from datetime import datetime
 import allure
 import pytest
 from playwright.sync_api import sync_playwright,BrowserContext,TimeoutError
@@ -49,27 +48,21 @@ def test_notion_login():
 
         try:
             # 노션 홈페이지 진입
-            page.goto("https://www.notion.com/")
-            time.sleep(1)
+            goto_and_wait(page, f"{NOTION_BASE_URL}/")
 
             # 아이디 및 패스워드 입력
-            page.get_by_role("link", name="Log in").click()
-
-            page.get_by_placeholder("이메일 주소를 입력하세요").click()
-            page.get_by_placeholder("이메일 주소를 입력하세요").fill("soosankeum@gmail.com")
+            page.get_by_role("link", name="로그인").click()
+            time.sleep(1)
+            page.get_by_role("textbox", name="이메일 주소를 입력하세요").click()
+            page.get_by_role("textbox", name="이메일 주소를 입력하세요").fill(NOTION_ID)
+            time.sleep(1)
             page.get_by_role("button", name="계속", exact=True).click()
             time.sleep(1)
-            page.get_by_placeholder("비밀번호를 입력하세요").click()
-            page.get_by_placeholder("비밀번호를 입력하세요").fill("iwilltakeyou01!")
+            page.get_by_role("textbox", name="비밀번호를 입력하세요").click()
+            page.get_by_role("textbox", name="비밀번호를 입력하세요").fill(NOTION_PASSWORD)
+            time.sleep(1)
             page.get_by_role("button", name="비밀번호로 계속하기").click()
             time.sleep(3)
-
-            # # 로그인 성공 여부 확인
-            # page.get_by_test_id("MyLoginProfileLayer").locator("img").click()
-            # page.locator("#tippy-7").get_by_text("dlptest1").click()
-            # page.wait_for_selector("role=link[name='dlptest1']", timeout=3000)
-            # assert page.get_by_role("link", name="dlptest1").is_visible() == True, "login failed. can't find the profile."
-            # time.sleep(2)
 
             # 세션 상태 저장
             os.makedirs("session", exist_ok=True)
@@ -77,13 +70,12 @@ def test_notion_login():
             context.storage_state(path=session_path)
 
         except Exception as e:
-            # # 실패 시 스크린샷 경로 설정
-            # screenshot_path = get_screenshot_path("test_nate_login")  # 공통 함수 호출
-            # page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # # page.screenshot(path=screenshot_path, full_page=True)
-            # print(f"Screenshot taken at : {screenshot_path}")
-            # allure.attach.file(screenshot_path, name="login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
+            # 실패 시 스크린샷 경로 설정
+            screenshot_path = get_screenshot_path("test_notion_login")  # 공통 함수 호출
+            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
+            # page.screenshot(path=screenshot_path, full_page=True)
+            print(f"Screenshot taken at : {screenshot_path}")
+            allure.attach.file(screenshot_path, name="notion_login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")
@@ -92,8 +84,8 @@ def test_notion_login():
             browser.close()
 
 @allure.severity(allure.severity_level.NORMAL)
-@allure.step("Notion board Normal Test")
-def test_notion_normal_board(request):
+@allure.step("Notion Normal Test")
+def test_notion_normal(request):
     with sync_playwright() as p:
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "notionstorageState.json")
@@ -103,21 +95,25 @@ def test_notion_normal_board(request):
 
         try:
 
-            # 세션 유지한 채로 메일 페이지로 이동
+            # 세션 유지한 채로 노션 편집 페이지로 이동
             page.goto("https://www.notion.so/")
 
             # 게시글 클릭 시 새 창이 열리는 것을 대기
-            page.get_by_label("시작하기").get_by_label("하위 페이지 추가").click()
-            page.get_by_label("전체 페이지로 열기").click()
+            page.get_by_role("button", name="페이지 추가", exact=True).click()
             time.sleep(1)
 
-            # 제목 입력
-            page.get_by_role("heading", name="새 페이지").click()
-            page.get_by_label("입력하여 텍스트 편집 시작").fill("아이콘 추가\n커버 추가\n댓글 추가\n기본로깅제목\n시작하기\n글쓰기에 도움 받기\n표\n양식\n템플릿")
-
-            # 본문 입력
+            page.get_by_role("textbox", name="입력하여 텍스트 편집 시작").fill(
+                "아이콘 추가\n커버 추가\n댓글 추가\n기본로깅테스트\n시작하기\nAI에게 질문하기\nAI 노트\n데이터베이스\n폼\n템플릿")
             page.locator(".notion-page-content").click()
-            page.get_by_label("입력하여 텍스트 편집 시작").fill("아이콘 추가\n커버 추가\n댓글 추가\n기본로깅제목\n기본로깅테스트본문")
+            page.get_by_role("textbox", name="입력하여 텍스트 편집 시작").fill("아이콘 추가\n커버 추가\n댓글 추가\n기본로깅\n기본로깅테스트본문")
+
+            # # 제목 입력
+            # page.get_by_role("region", name="사이드 보기").get_by_label("입력하여 텍스트 편집 시작").fill("기본로깅테스트")
+            #
+            # # 본문 입력
+            # page.locator(".layout.layout-center-peek > div:nth-child(4) > .notion-page-content").click()
+            # page.get_by_role("region", name="사이드 보기").get_by_label("입력하여 텍스트 편집 시작").fill("\n".join(DLP_NORMAL))
+
 
             # 3초 대기
             page.wait_for_timeout(3000)

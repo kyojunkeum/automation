@@ -129,6 +129,15 @@ SERVICE_NAMES_NAVERWORKS_BOARD_COMMENT = [
     SERVICE_NAME_NAVERWORKS_BOARD_COMMENT_EN,
 ]
 
+# ============================
+# 서비스 이름 (WORKSHARE)
+# ============================
+SERVICE_NAME_DOORAY_TASK_KO = "두레이 업무"
+SERVICE_NAME_DOORAY_TASK_EN = "Doorey Tasks"
+SERVICE_NAMES_DOORAY_TASK = [
+    SERVICE_NAME_DOORAY_TASK_KO,
+    SERVICE_NAME_DOORAY_TASK_EN,
+]
 
 # ============================
 # 서비스 이름 (WEBHARD)
@@ -154,6 +163,7 @@ OUTLOOK_MAIL_URL = os.getenv("OUTLOOK_MAIL_URL", "https://outlook.live.com/mail/
 NAVERWORKS_BASE_URL = os.getenv("NAVERWORKS_BASE_URL", "https://naver.worksmobile.com")
 NAVERWORKS_BOARD_URL = os.getenv("NAVERWORKS_BOARD_URL", "https://board.worksmobile.com")
 NAVERWORKS_CALENDAR_URL = os.getenv("NAVERWORKS_CALENDAR_URL", "https://calendar.worksmobile.com")
+NOTION_BASE_URL = os.getenv("NOTION_BASE_URL", "https://www.notion.com")
 # YAHOO_BASE_URL = os.getenv("YAHOO_BASE_URL", "https://mail.yahoo.com") 홈페이지 자동화 브라우저로 로그인 시 사용 불가
 # ============================
 # DLP 패턴, 키워드, 파일첨부 요소화

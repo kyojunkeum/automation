@@ -54,6 +54,12 @@ NAVERWORKS_ID = os.getenv("NAVERWORKS_ID", "dlptest1@ewakerdlp.by-works.com")
 NAVERWORKS_PASSWORD = os.getenv("NAVERWORKS_PASSWORD", "S@@san_1004!")
 
 # ============================
+# NOTION 접속 정보
+# ============================
+NOTION_ID = os.getenv("NOTION_ID", "soosankeum@gmail.com")
+NOTION_PASSWORD = os.getenv("NOTION_PASSWORD", "iwilltakeyou01!")
+
+# ============================
 # YAHOO_MAIL 접속 정보
 # ============================
 # YAHOO_ID = os.getenv("YAHOO_ID", "soosan_kjkeum")

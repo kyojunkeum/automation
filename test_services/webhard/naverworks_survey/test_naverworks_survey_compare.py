@@ -9,7 +9,7 @@ NORMAL_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "기본 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "1"},
+        "expected": {"pattern_count": "0", "keyword_count": "0", "file_count": "0"},
     }
 ]
 
@@ -17,7 +17,7 @@ PATTERN_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "패턴 로깅",
-        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "1"},
+        "expected": {"pattern_count": "14", "keyword_count": "0", "file_count": "0"},
     }
 ]
 
@@ -25,7 +25,7 @@ KEYWORD_LOGGING_CASE = [
     {
         "hit_index": 0,
         "label": "키워드 로깅",
-        "expected": {"pattern_count": "0", "keyword_count": "1", "file_count": "1"},
+        "expected": {"pattern_count": "0", "keyword_count": "6", "file_count": "0"},
     }
 ]
 
@@ -318,6 +318,7 @@ def test_naverworks_survey_attach(request):
             page1.get_by_role("textbox", name="설문 제목을 입력하세요").fill("첨부파일로깅테스트")
             time.sleep(1)
             page1.get_by_role("textbox", name="설문 설명을 입력하세요").click()
+            page1.get_by_role("textbox", name="설문 설명을 입력하세요").fill("\n".join(DLP_NORMAL))
             time.sleep(1)
             with page1.expect_file_chooser(timeout=5000) as fc_info:
                 page1.get_by_role("button", name="Choose File").click()

@@ -60,6 +60,13 @@ NOTION_ID = os.getenv("NOTION_ID", "soosankeum@gmail.com")
 NOTION_PASSWORD = os.getenv("NOTION_PASSWORD", "iwilltakeyou01!")
 
 # ============================
+# COPILOT 접속 정보
+# ============================
+COPILOT_ID = os.getenv("COPILOT_ID", "soosan_kjkeum@naver.com")
+COPILOT_PASSWORD = os.getenv("COPILOT_PASSWORD", "iwilltakeyou01!")
+
+
+# ============================
 # YAHOO_MAIL 접속 정보
 # ============================
 # YAHOO_ID = os.getenv("YAHOO_ID", "soosan_kjkeum")

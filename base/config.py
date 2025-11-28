@@ -111,6 +111,15 @@ SERVICE_NAMES_NAVERWORKS_MESSENGER = [
     SERVICE_NAME_NAVERWORKS_MESSENGER_EN,
 ]
 
+# ============================
+# 서비스 이름 (GENAI)
+# ============================
+SERVICE_NAME_COPILOT_KO = "COPILOT"
+SERVICE_NAME_COPILOT_EN = "COPILOT"
+SERVICE_NAMES_COPILOT = [
+    SERVICE_NAME_COPILOT_KO,
+    SERVICE_NAME_COPILOT_EN,
+]
 
 # ============================
 # 서비스 이름 (SNS)
@@ -210,13 +219,21 @@ SERVICE_NAMES_NAVERWORKS_SURVEY = [
 # ============================
 # 서비스별 접속 URL
 # ============================
-DOORAY_BASE_URL = os.getenv("DOORAY_BASE_URL", "https://ewalkerdlp.dooray.com")
+# 웹메일
 NATE_BASE_URL = os.getenv("NATE_BASE_URL", "https://www.nate.com")
 NATE_MAIL_URL = os.getenv("NATE_MAIL_URL", "https://mail3.nate.com")
 DAUM_BASE_URL = os.getenv("DAUM_BASE_URL", "https://www.daum.net")
 DAUM_MAIL_URL = os.getenv("DAUM_MAIL_URL", "https://mail.daum.net")
 OUTLOOK_BASE_URL = os.getenv("OUTLOOK_BASE_URL", "https://outlook.office.com")
 OUTLOOK_MAIL_URL = os.getenv("OUTLOOK_MAIL_URL", "https://outlook.live.com/mail/0/")
+
+# 생성형 AI
+COPILOT_BASE_URL = os.getenv("COPILOT_BASE_URL", "https://copilot.microsoft.com")
+
+# 두레이
+DOORAY_BASE_URL = os.getenv("DOORAY_BASE_URL", "https://ewalkerdlp.dooray.com")
+
+# 네이버웍스
 NAVERWORKS_BASE_URL = os.getenv("NAVERWORKS_BASE_URL", "https://naver.worksmobile.com")
 NAVERWORKS_MAIL_URL = os.getenv("NAVERWORKS_MAIL_URL", "https://mail.worksmobile.com")
 NAVERWORKS_BOARD_URL = os.getenv("NAVERWORKS_BOARD_URL", "https://board.worksmobile.com")
@@ -224,6 +241,7 @@ NAVERWORKS_CALENDAR_URL = os.getenv("NAVERWORKS_CALENDAR_URL", "https://calendar
 NAVERWORKS_MESSENGER_URL = os.getenv("NAVERWORKS_MESSENGER_URL", "https://talk.worksmobile.com")
 NAVERWORKS_DRIVE_URL = os.getenv("NAVERWORKS_DRIVE_URL", "https://drive.worksmobile.com/drive/web/share/root")
 NAVERWORKS_SURVEY_URL = os.getenv("NAVERWORKS_SURVEY_URL", "https://form.worksmobile.com")
+
 # NOTION_BASE_URL = os.getenv("NOTION_BASE_URL", "https://www.notion.com")
 # YAHOO_BASE_URL = os.getenv("YAHOO_BASE_URL", "https://mail.yahoo.com") 홈페이지 자동화 브라우저로 로그인 시 사용 불가
 # ============================

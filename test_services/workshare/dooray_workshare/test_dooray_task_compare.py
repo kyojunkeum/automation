@@ -313,17 +313,6 @@ def test_dooray_task_attach(request):
             page1.keyboard.press("Escape")
             time.sleep(1)
 
-            # 제목 입력
-            page1.get_by_role("textbox", name="제목을 입력해 주세요").click()
-            page1.get_by_role("textbox", name="제목을 입력해 주세요").fill("첨부파일로깅테스트")
-            time.sleep(1)
-
-            # 본문 입력
-            editor_box = page1.get_by_test_id("DoorayMDEditor").get_by_role("textbox")
-            editor_box.click()
-            editor_box.fill("첨부파일로깅테스트")
-            time.sleep(1)
-
             # 파일첨부
             with page1.expect_file_chooser() as fc_info:
                 page1.get_by_test_id("ProjectWriteAttachFilesContainer_GhostButton").click()

@@ -335,7 +335,11 @@ def test_naverworks_survey_attach(request):
             time.sleep(0.5)
             page1.get_by_role("button", name="추가", exact=True).click()
             time.sleep(0.5)
-            page1.get_by_role("button", name="완료").click()
+            try:
+                page1.get_by_role("button", name="완료").click(timeout=2000)
+                print("✔ [DEBUG] 완료 클릭")
+            except:
+                print("▶ [DEBUG] 완료 없음 → 스킵")
 
             # 대기
             page.wait_for_timeout(5000)

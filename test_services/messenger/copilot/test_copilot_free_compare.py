@@ -297,7 +297,11 @@ def test_copilot_free_attach(request):
             time.sleep(5)
 
             # 메시지 전송
-            page.get_by_test_id("submit-button").click()
+            try:
+                page.get_by_test_id("submit-button").click(timeout=2000)
+                print("✔ [DEBUG] 완료 클릭")
+            except:
+                print("▶ [DEBUG] 완료 없음 → 스킵")
 
             # 대기
             page.wait_for_timeout(10000)

@@ -303,6 +303,7 @@ def test_naverworks_board_comment_attach(request):
             try:
                 with page.expect_file_chooser(timeout=5000) as fc_info:
                     page.get_by_role("button", name="내 PC").click()
+                time.sleep(1)
                 file_chooser = fc_info.value
                 # 한 개 파일 첨부
                 file_chooser.set_files(DLP_FILE)

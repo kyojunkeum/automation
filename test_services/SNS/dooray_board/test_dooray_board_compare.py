@@ -303,6 +303,7 @@ def test_dooray_board_attach(request):
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
                 page.get_by_test_id("HomeBoardArticleEditorAttachButton_GhostButton").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             # 한 개 파일 첨부
             file_chooser.set_files(DLP_FILE)
@@ -310,8 +311,13 @@ def test_dooray_board_attach(request):
             # # 여러 파일 첨부(2개)
             # file_chooser.set_files(DLP_FILES)
 
-            # # 저장 클릭
-            # page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click()
+            # 저장 클릭
+            try:
+                page.get_by_test_id("HomeBoardArticleEditorSaveButton_ButtonComponent").click(timeout=2000)
+                print("✔ [DEBUG] 완료 클릭")
+            except:
+                print("▶ [DEBUG] 완료 없음 → 스킵")
+
 
             # 대기
             page.wait_for_timeout(10000)

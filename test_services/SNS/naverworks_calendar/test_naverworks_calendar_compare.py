@@ -299,7 +299,11 @@ def test_naverworks_calendar_keyword(request):
 #             # 파일 첨부
 #
 #             # 저장 클릭
-#             page.get_by_role("button", name="저장").nth(1).click()
+#             try:
+#                 page.get_by_role("button", name="저장").nth(1).click(timeout=2000)
+#                 print("✔ [DEBUG] 완료 클릭")
+#             except:
+#                 print("▶ [DEBUG] 완료 없음 → 스킵")
 #
 #
 #             # 대기

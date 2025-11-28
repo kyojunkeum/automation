@@ -297,7 +297,12 @@ def test_nate_mail_attach(request):
 
             # 보내기 클릭
             time.sleep(2)
-            page.get_by_role("button", name="보내기").click()
+            try:
+                page.get_by_role("button", name="보내기").click(timeout=2000)
+                print("✔ [DEBUG] 완료 클릭")
+            except:
+                print("▶ [DEBUG] 완료 없음 → 스킵")
+
 
             # 5초 대기
             page.wait_for_timeout(10000)

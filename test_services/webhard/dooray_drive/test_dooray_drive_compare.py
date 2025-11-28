@@ -106,6 +106,7 @@ def test_dooray_drive_normal(request):
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
                 page.get_by_role("button", name="파일 업로드").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             file_chooser.set_files(DLP_FILE)
             time.sleep(3)
@@ -166,6 +167,7 @@ def test_dooray_drive_pattern(request):
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
                 page.get_by_role("button", name="파일 업로드").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             file_chooser.set_files(DLP_FILE_PATTERN)
             time.sleep(3)
@@ -226,6 +228,7 @@ def test_dooray_drive_keyword(request):
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
                 page.get_by_role("button", name="파일 업로드").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             file_chooser.set_files(DLP_FILE_KEYWORD)
             time.sleep(3)
@@ -286,6 +289,7 @@ def test_dooray_drive_mix(request):
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
                 page.get_by_role("button", name="파일 업로드").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             file_chooser.set_files(DLP_FILE_MIX)
             time.sleep(3)

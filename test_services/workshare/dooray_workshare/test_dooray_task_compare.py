@@ -327,6 +327,7 @@ def test_dooray_task_attach(request):
             # 파일첨부
             with page1.expect_file_chooser() as fc_info:
                 page1.get_by_test_id("ProjectWriteAttachFilesContainer_GhostButton").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             # 파일 1개 첨부
             file_chooser.set_files(DLP_FILE)
@@ -334,9 +335,13 @@ def test_dooray_task_attach(request):
             # file_chooser.set_files(DLP_FILES)
             print("파일을 첨부하였습니다.")
 
-            # # 저장 클릭
-            # page1.get_by_test_id("project-base-writeFooterConfirm").click()
-            # page1.close()
+            # 저장 클릭
+            try:
+                page1.get_by_test_id("project-base-writeFooterConfirm").click(timeout=2000)
+                page1.close()
+                print("✔ [DEBUG] 완료 클릭")
+            except:
+                print("▶ [DEBUG] 완료 없음 → 스킵")
 
             # 대기
             page.wait_for_timeout(5000)

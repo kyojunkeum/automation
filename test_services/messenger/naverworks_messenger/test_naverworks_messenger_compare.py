@@ -268,7 +268,6 @@ def test_naverworks_messenger_attach(request):
                 page.get_by_text("내 PC").click()
             time.sleep(1)
             file_chooser = fc_info.value
-
             file_chooser.set_files(DLP_FILE)
             time.sleep(2)
             print(f"[DEBUG] 파일 첨부 완료: {DLP_FILE}")

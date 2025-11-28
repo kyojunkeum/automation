@@ -342,6 +342,7 @@ def test_dooray_mail_attach(request):
             # 파일 첨부
             with page1.expect_file_chooser() as fc_info:
                 page1.get_by_test_id("MailWriteHeader_GhostButton").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             # 파일 1개 첨부
             file_chooser.set_files(DLP_FILE)

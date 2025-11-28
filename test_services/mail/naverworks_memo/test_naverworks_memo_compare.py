@@ -313,7 +313,7 @@ def test_naverworks_memo_attach(request):
             # '내 PC' 클릭 → 파일 선택창 열리는 구간을 file chooser 로 처리
             with page1.expect_file_chooser(timeout=5000) as fc_info:
                 page1.get_by_role("link", name="내 PC").click()
-
+            time.sleep(1)
             file_chooser = fc_info.value
             file_chooser.set_files(DLP_FILE)
             print(f"[DEBUG] 파일 첨부 완료: {DLP_FILE}")

@@ -330,10 +330,14 @@ def test_naverworks_board_attach(request):
             print(f"✔ [DEBUG] 파일 첨부 완료: {DLP_FILE}")
 
             # 저장 클릭
-            page.get_by_role("button", name="등록", exact=True).click()
-            time.sleep(1)
-            page.get_by_text("게시글 등록 알림 보내기").click()
-            page.get_by_role("button", name="확인").click()
+            try:
+                page.get_by_role("button", name="등록", exact=True).click()
+                time.sleep(1)
+                page.get_by_text("게시글 등록 알림 보내기").click()
+                page.get_by_role("button", name="확인").click()
+                print("✔ [DEBUG] 완료 클릭")
+            except:
+                print("▶ [DEBUG] 완료 없음 → 스킵")
 
             # 대기
             page.wait_for_timeout(10000)

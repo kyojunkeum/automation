@@ -259,8 +259,8 @@ def test_dooray_messenger_attach(request):
 
             with page.expect_file_chooser(timeout=5000) as fc_info:
                 page.locator('button:has(i[name="paperclip"])').click()
+            time.sleep(1)
             file_chooser = fc_info.value
-
             file_chooser.set_files(file_path)
             time.sleep(2)
             page.get_by_role("button", name="이미지 전송").click()

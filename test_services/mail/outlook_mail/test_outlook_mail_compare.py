@@ -315,6 +315,7 @@ def test_outlook_mail_attach(request):
             file_input = page.locator("[data-testid='local-computer-filein']").first
             file_input.set_input_files(DLP_FILE)
             print("파일 첨부가 완료되었습니다.")
+            time.sleep(3)
 
             # 보내기 클릭
             safe_send_with_popup_retry(page)

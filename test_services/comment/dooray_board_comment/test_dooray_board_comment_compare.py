@@ -297,6 +297,7 @@ def test_dooray_board_comment_attach(request):
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
                 page.get_by_role("button", name="첨부").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             # 한 개 파일 첨부
             file_chooser.set_files(DLP_FILE)
@@ -304,8 +305,12 @@ def test_dooray_board_comment_attach(request):
             # # 여러 파일(2개) 첨부
             # file_chooser.set_files(DLP_FILES)
 
-            # # 저장 클릭
-            # page.get_by_role("button", name="저장").click()
+            # 저장 클릭
+            try:
+                page.get_by_role("button", name="저장").click(timeout=2000)
+                print("✔ [DEBUG] 완료 클릭")
+            except:
+                print("▶ [DEBUG] 완료 없음 → 스킵")
 
             # 대기
             page.wait_for_timeout(10000)

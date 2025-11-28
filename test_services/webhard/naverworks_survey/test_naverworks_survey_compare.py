@@ -322,6 +322,7 @@ def test_naverworks_survey_attach(request):
             time.sleep(1)
             with page1.expect_file_chooser(timeout=5000) as fc_info:
                 page1.get_by_role("button", name="Choose File").click()
+            time.sleep(1)
             file_chooser = fc_info.value
             # 한 개 파일 첨부
             file_chooser.set_files(DLP_FILE)

@@ -55,10 +55,13 @@ def test_daum_login():
 
             # 아이디 및 패스워드 입력
             page.get_by_role("link", name="카카오계정으로 로그인").click()
-            page.get_by_placeholder("카카오메일 아이디, 이메일, 전화번호 ").click()
-            page.get_by_placeholder("카카오메일 아이디, 이메일, 전화번호 ").fill(DAUM_ID)
-            page.get_by_placeholder("비밀번호").click()
-            page.get_by_placeholder("비밀번호").fill(DAUM_PASSWORD)
+            time.sleep(1)
+            page.get_by_role("button", name="카카오로 로그인").click()
+            time.sleep(1)
+            page.get_by_role("textbox", name="계정정보 입력").click()
+            page.get_by_role("textbox", name="계정정보 입력").fill(DAUM_ID)
+            page.get_by_role("textbox", name="비밀번호 입력").click()
+            page.get_by_role("textbox", name="비밀번호 입력").fill(DAUM_PASSWORD)
             time.sleep(1)
             page.get_by_role("button", name="로그인", exact=True).click()
             time.sleep(3)
@@ -86,7 +89,7 @@ def test_daum_login():
 @allure.step("Daum Mail Normal Test")
 @pytest.mark.dependency(name="daum_mail_normal")
 def test_daum_mail_normal(request):
-    with sync_playwright() as p:
+    with (sync_playwright() as p):
         # 저장된 세션 상태를 로드하여 브라우저 컨텍스트 생성
         session_path = os.path.join("session", "daumstorageState.json")
         browser = p.chromium.launch(headless=False)
@@ -101,12 +104,29 @@ def test_daum_mail_normal(request):
             # 팝업이 있으면 확인 클릭, 없으면 스킵
             click_confirm_if_popup_exists(page)
 
+            try:
+                page.get_by_role("button", name="카카오로 로그인").click()
+                time.sleep(1)
+                page.get_by_role("textbox", name="계정정보 입력").click()
+                page.get_by_role("textbox", name="계정정보 입력").fill(DAUM_ID)
+                page.get_by_role("textbox", name="비밀번호 입력").click()
+                page.get_by_role("textbox", name="비밀번호 입력").fill(DAUM_PASSWORD)
+                time.sleep(1)
+                page.get_by_role("button", name="로그인", exact=True).click()
+                time.sleep(3)
+                print("정상적으로 로그인 하였습니다")
+            except:
+                print("로그인 필요 없음 → 스킵")
+
+            # 팝업이 있으면 확인 클릭, 없으면 스킵
+            click_confirm_if_popup_exists(page)
+
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             click_and_wait_navigation(page, role="button", name="내게쓰기")
 
             # 제목 입력
-            page.get_by_label("제목").click()
-            page.get_by_label("제목").fill("기본로깅테스트")
+            page.get_by_role("textbox", name="제목").click()
+            page.get_by_role("textbox", name="제목").fill("기본로깅테스트")
 
             # 본문 입력
             editor_box = page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.locator("body")
@@ -161,12 +181,29 @@ def test_daum_mail_pattern(request):
             # 팝업이 있으면 확인 클릭, 없으면 스킵
             click_confirm_if_popup_exists(page)
 
+            try:
+                page.get_by_role("button", name="카카오로 로그인").click()
+                time.sleep(1)
+                page.get_by_role("textbox", name="계정정보 입력").click()
+                page.get_by_role("textbox", name="계정정보 입력").fill(DAUM_ID)
+                page.get_by_role("textbox", name="비밀번호 입력").click()
+                page.get_by_role("textbox", name="비밀번호 입력").fill(DAUM_PASSWORD)
+                time.sleep(1)
+                page.get_by_role("button", name="로그인", exact=True).click()
+                time.sleep(3)
+                print("정상적으로 로그인 하였습니다")
+            except:
+                print("로그인 필요 없음 → 스킵")
+
+            # 팝업이 있으면 확인 클릭, 없으면 스킵
+            click_confirm_if_popup_exists(page)
+
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             click_and_wait_navigation(page, role="button", name="내게쓰기")
 
             # 제목 입력
-            page.get_by_label("제목").click()
-            page.get_by_label("제목").fill("개인정보로깅테스트")
+            page.get_by_role("textbox", name="제목").click()
+            page.get_by_role("textbox", name="제목").fill("개인정보로깅테스트")
 
             # 본문 입력
             editor_box = page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.locator("body")
@@ -220,12 +257,29 @@ def test_daum_mail_keyword(request):
             # 팝업이 있으면 확인 클릭, 없으면 스킵
             click_confirm_if_popup_exists(page)
 
+            try:
+                page.get_by_role("button", name="카카오로 로그인").click()
+                time.sleep(1)
+                page.get_by_role("textbox", name="계정정보 입력").click()
+                page.get_by_role("textbox", name="계정정보 입력").fill(DAUM_ID)
+                page.get_by_role("textbox", name="비밀번호 입력").click()
+                page.get_by_role("textbox", name="비밀번호 입력").fill(DAUM_PASSWORD)
+                time.sleep(1)
+                page.get_by_role("button", name="로그인", exact=True).click()
+                time.sleep(3)
+                print("정상적으로 로그인 하였습니다")
+            except:
+                print("로그인 필요 없음 → 스킵")
+
+            # 팝업이 있으면 확인 클릭, 없으면 스킵
+            click_confirm_if_popup_exists(page)
+
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             click_and_wait_navigation(page, role="button", name="내게쓰기")
 
             # 제목 입력
-            page.get_by_label("제목").click()
-            page.get_by_label("제목").fill("키워드로깅테스트")
+            page.get_by_role("textbox", name="제목").click()
+            page.get_by_role("textbox", name="제목").fill("키워드로깅테스트")
 
             # 본문 입력
             editor_box = page.locator("iframe[name=\"tx_canvas_wysiwyg\"]").content_frame.locator("body")
@@ -279,12 +333,29 @@ def test_daum_mail_attach(request):
             # 팝업이 있으면 확인 클릭, 없으면 스킵
             click_confirm_if_popup_exists(page)
 
+            try:
+                page.get_by_role("button", name="카카오로 로그인").click()
+                time.sleep(1)
+                page.get_by_role("textbox", name="계정정보 입력").click()
+                page.get_by_role("textbox", name="계정정보 입력").fill(DAUM_ID)
+                page.get_by_role("textbox", name="비밀번호 입력").click()
+                page.get_by_role("textbox", name="비밀번호 입력").fill(DAUM_PASSWORD)
+                time.sleep(1)
+                page.get_by_role("button", name="로그인", exact=True).click()
+                time.sleep(3)
+                print("정상적으로 로그인 하였습니다")
+            except:
+                print("로그인 필요 없음 → 스킵")
+
+            # 팝업이 있으면 확인 클릭, 없으면 스킵
+            click_confirm_if_popup_exists(page)
+
             # 메일쓰기 클릭 시 새 창이 열리는 것을 대기
             click_and_wait_navigation(page, role="button", name="내게쓰기")
 
             # 제목 입력
-            page.get_by_label("제목").click()
-            page.get_by_label("제목").fill("첨부파일로깅테스트")
+            page.get_by_role("textbox", name="제목").click()
+            page.get_by_role("textbox", name="제목").fill("첨부파일로깅테스트")
 
             # 3. 파일 첨부 클릭
             page.get_by_label("파일 첨부하기").set_input_files(DLP_FILE)

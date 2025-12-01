@@ -100,7 +100,7 @@ def test_dooray_drive_normal(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/drive")
-            time.sleep(3)
+            time.sleep(10)
 
 
             # 파일 첨부
@@ -161,8 +161,7 @@ def test_dooray_drive_pattern(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/drive")
-            time.sleep(3)
-
+            time.sleep(10)
 
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
@@ -222,7 +221,7 @@ def test_dooray_drive_keyword(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/drive")
-            time.sleep(3)
+            time.sleep(10)
 
 
             # 파일 첨부
@@ -283,7 +282,7 @@ def test_dooray_drive_mix(request):
 
             # 세션 유지한 채로 메일 페이지로 이동
             page.goto(f"{DOORAY_BASE_URL}/drive")
-            time.sleep(3)
+            time.sleep(10)
 
 
             # 파일 첨부

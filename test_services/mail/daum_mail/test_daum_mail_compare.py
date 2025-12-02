@@ -79,7 +79,7 @@ def test_daum_login():
             print(f"Screenshot taken at : {screenshot_path}")
             allure.attach.file(screenshot_path, name="daum_login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
-            # pytest.fail(f"Test failed: {str(e)}")
+            pytest.fail(f"Test failed: {str(e)}")
             print(f"[WARN] 로그인 실패 (무시함): {e}")
 
         finally:

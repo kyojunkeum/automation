@@ -5,6 +5,7 @@ from base.config import ES_URL, ES_INDEX_PATTERN
 import time
 from requests.exceptions import ConnectionError, ReadTimeout
 from playwright.sync_api import Page, BrowserContext, TimeoutError
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 import os
 from datetime import datetime
 
@@ -117,7 +118,7 @@ def get_screenshot_path(test_name):
     os.makedirs(screenshot_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.jpg")
-    # return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.png")
+
 
 def search_logs_from_es(
     service_name: Union[str, Sequence[str]],

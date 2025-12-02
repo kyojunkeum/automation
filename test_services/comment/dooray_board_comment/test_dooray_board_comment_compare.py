@@ -71,10 +71,9 @@ def test_dooray_login():
             # 실패 시 스크린샷 경로 설정
             screenshot_path = get_screenshot_path("test_dooray_login")  # 공통 함수 호출
             page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # page.screenshot(path=screenshot_path, full_page=True)
             print(f"Screenshot taken at : {screenshot_path}")
             allure.attach.file(screenshot_path, name="dooray_login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
+            print(f"[WARN] 로그인 실패 (무시함): {e}")
 
             # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
             pytest.fail(f"Test failed: {str(e)}")

@@ -79,7 +79,6 @@ from .function import (
     goto_and_wait,
     click_and_wait_navigation,
     get_screenshot_path,
-    safe_screenshot,
     click_confirm_if_popup_exists,
     safe_send_with_popup_retry,
 )

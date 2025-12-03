@@ -290,16 +290,6 @@ def test_dooray_board_attach(request):
             page.get_by_test_id("HomeLnb_ContainedButton").click()
             time.sleep(1)
 
-            # 제목 입력
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").click()
-            page.get_by_test_id("HomeBoardWritePageTitleField_BottomLinedTextField").fill("첨부파일로깅테스트")
-
-            # 본문 입력
-            editor_box = page.get_by_test_id("DoorayMDEditor").get_by_role("textbox")
-            editor_box.click()
-            editor_box.fill("첨부파일로깅테스트")
-            time.sleep(1)
-
             # 파일 첨부
             with page.expect_file_chooser() as fc_info:
                 page.get_by_test_id("HomeBoardArticleEditorAttachButton_GhostButton").click()

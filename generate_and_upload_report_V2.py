@@ -290,7 +290,7 @@ def upload_report():
 
 if __name__ == "__main__":
 
-    repeat_count = 1
+    repeat_count = 100
     interval = 5
 
     for _ in range(repeat_count):

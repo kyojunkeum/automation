@@ -41,7 +41,7 @@ FILE_LOGGING_CASE = [
 
 @allure.severity(allure.severity_level.TRIVIAL)
 @allure.step("Copilot Free Login Test")
-def test_copilot_free_login():
+def test_copilot_free_login(request):
     with sync_playwright() as p:
         # 브라우저 및 컨텍스트 생성
         browser = p.chromium.launch(headless=False)
@@ -81,15 +81,8 @@ def test_copilot_free_login():
             context.storage_state(path=session_path)
 
         except Exception as e:
-            # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_copilot_free_login")  # 공통 함수 호출
-            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # page.screenshot(path=screenshot_path, full_page=True)
-            print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="copilot_free_login_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
-
-            # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
+            capture_failure_screenshot(page, request, timeout=5000)
+            print(f"[WARN] 테스트 실패: {e}")
             pytest.fail(f"Test failed: {str(e)}")
 
         finally:
@@ -137,14 +130,8 @@ def test_copilot_free_normal(request):
             )
 
         except Exception as e:
-            # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_copilot_free_normal")  # 공통 함수 호출
-            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # page.screenshot(path=screenshot_path, full_page=True)
-            print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="copilot_free_normal_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
-            # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
+            capture_failure_screenshot(page, request, timeout=5000)
+            print(f"[WARN] 테스트 실패: {e}")
             pytest.fail(f"Test failed: {str(e)}")
 
         finally:
@@ -192,16 +179,9 @@ def test_copilot_free_pattern(request):
             )
 
         except Exception as e:
-            # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_copilot_free_pattern")  # 공통 함수 호출
-            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # page.screenshot(path=screenshot_path, full_page=True)
-            print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="copilot_free_pattern_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
-            # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
+            capture_failure_screenshot(page, request, timeout=5000)
+            print(f"[WARN] 테스트 실패: {e}")
             pytest.fail(f"Test failed: {str(e)}")
-
         finally:
             browser.close()
 
@@ -247,14 +227,8 @@ def test_copilot_free_keyword(request):
             )
 
         except Exception as e:
-            # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_copilot_free_keyword")  # 공통 함수 호출
-            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # page.screenshot(path=screenshot_path, full_page=True)
-            print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="copilot_free_keyword_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
-            # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
+            capture_failure_screenshot(page, request, timeout=5000)
+            print(f"[WARN] 테스트 실패: {e}")
             pytest.fail(f"Test failed: {str(e)}")
 
         finally:
@@ -316,14 +290,8 @@ def test_copilot_free_attach(request):
             )
 
         except Exception as e:
-            # 실패 시 스크린샷 경로 설정
-            screenshot_path = get_screenshot_path("test_copilot_free_attach")  # 공통 함수 호출
-            page.screenshot(path=screenshot_path, type="jpeg", quality=80)
-            # page.screenshot(path=screenshot_path, full_page=True)
-            print(f"Screenshot taken at : {screenshot_path}")
-            allure.attach.file(screenshot_path, name="copilot_free_attach_failure_screenshot", attachment_type=allure.attachment_type.JPG)
-
-            # pytest.fail로 스크린샷 경로와 함께 실패 메시지 기록
+            capture_failure_screenshot(page, request, timeout=5000)
+            print(f"[WARN] 테스트 실패: {e}")
             pytest.fail(f"Test failed: {str(e)}")
 
         finally:

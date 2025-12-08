@@ -119,6 +119,43 @@ def get_screenshot_path(test_name):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     return os.path.join(screenshot_dir, f"{test_name}_failed_{timestamp}.jpg")
 
+def capture_failure_screenshot(page, request, timeout: int = 5000):
+    """
+    실패 시 스크린샷 + allure 첨부를 한 번에 처리하는 헬퍼.
+
+    - 테스트 함수 시그니처에 `request` fixture 만 추가해 두면
+      request.node.name 으로 현재 테스트 이름을 자동 사용한다.
+    """
+    test_name = request.node.name  # pytest가 주입하는 request fixture
+
+    screenshot_path = get_screenshot_path(test_name)
+
+    try:
+        # Playwright 스크린샷 (timeout 조절 가능)
+        page.screenshot(
+            path=screenshot_path,
+            type="jpeg",
+            quality=80,
+            timeout=timeout,
+        )
+        print(f"Screenshot taken at : {screenshot_path}")
+
+        # Allure 첨부
+        allure.attach.file(
+            screenshot_path,
+            name=f"{test_name}_failure_screenshot",
+            attachment_type=allure.attachment_type.JPG,
+        )
+
+    except PlaywrightTimeoutError as te:
+        # 폰트 로딩/렌더링 딜레이 등으로 스크린샷 타임아웃 나는 경우
+        print(f"[WARN] Screenshot timeout for {test_name}: {te}")
+
+    except Exception as e:
+        # 그 외 스크린샷 관련 예외
+        print(f"[WARN] Screenshot capture failed for {test_name}: {e}")
+
+    return screenshot_path
 
 def search_logs_from_es(
     service_name: Union[str, Sequence[str]],

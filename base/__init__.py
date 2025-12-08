@@ -81,6 +81,7 @@ from .function import (
     get_screenshot_path,
     click_confirm_if_popup_exists,
     safe_send_with_popup_retry,
+    capture_failure_screenshot,
 )
 
 __all__ = [
@@ -158,6 +159,7 @@ __all__ = [
     "get_screenshot_path",
     "click_confirm_if_popup_exists",
     "safe_send_with_popup_retry",
+    "capture_failure_screenshot",
 
 
 ]

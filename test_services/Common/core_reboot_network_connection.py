@@ -48,11 +48,11 @@ async def run_test():
         page = await context.new_page()
 
         # ✅ 사용자 입력: 제품 웹 UI 주소
-        await page.goto("https://172.16.150.188:8443/login")  # 예: http://192.168.0.1/admin
+        await page.goto("https://xxx.xxx.xxx.xxx:xxxx/login")  # 예: http://192.168.0.1/admin
 
         # ✅ 사용자 입력: 로그인 입력 필드 및 로그인 동작
         await page.fill("input[name='j_username']", "intsoosan")
-        await page.fill("input[name='j_password']", "dkswjswmd4071*")
+        await page.fill("input[name='j_password']", "password")
         # await page.get_by_role("button", name="로그인").click()
 
         try:
@@ -74,7 +74,7 @@ async def run_test():
         await click_confirm_if_popup_exists(page, timeout=5000)
 
         # ✅ 사용자 입력: 특정 버튼 클릭 페이지로 이동
-        await page.goto("https://172.16.150.188:8443/system/serversetting")  # 재기동 페이지 이동
+        await page.goto("https://xxx.xxx.xxx.xxx:xxxx/system/serversetting")  # 재기동 페이지 이동
 
         # ✅ 사용자 입력: SW 재기동 버튼 클릭
         await page.get_by_role("button", name="코어 재기동").click()

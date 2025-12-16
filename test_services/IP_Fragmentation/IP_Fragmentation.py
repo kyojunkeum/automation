@@ -2,8 +2,8 @@ import conf
 from scapy.all import IP, UDP, Raw, Ether, send, conf
 
 # 대상 IP 설정
-dlp_ip = "172.16.150.187"  # DLP 서버 IP
-client_ip = "172.16.150.132"  # 클라이언트 IP
+dlp_ip = "xxx.xxx.xxx.xxx"  # DLP 서버 IP
+client_ip = "xxx.xxx.xxx.xxx"  # 클라이언트 IP
 
 # MTU보다 큰 페이로드를 사용하여 강제 Fragmentation 유도
 payload = b"A" * 3000  # 3000 바이트의 데이터

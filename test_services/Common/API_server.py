@@ -44,4 +44,4 @@ def create_post(data: PostData):
 # 개발 환경에서 서버 실행 (테스트용)
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="172.16.150.132", port=8000)
+    uvicorn.run(app, host="xxx.xxx.xxx.xxx", port=8000)

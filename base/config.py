@@ -16,14 +16,14 @@ HOST_IP = get_host_ip()
 
 # PC IP -> DUT IP 매핑
 DUT_MAPPING = {
-    "172.16.120.59": "172.16.150.187",
-    "172.16.150.124": "172.16.150.188",
-    "172.16.150.131": "172.16.150.185",
-    "172.16.150.132": "172.16.150.187"
+    "xxx.xxx.xxx.xxx": "xxx.xxx.xxx.xxx",
+    "xxx.xxx.xxx.xxx": "xxx.xxx.xxx.xxx",
+    "xxx.xxx.xxx.xxx": "xxx.xxx.xxx.xxx",
+    "xxx.xxx.xxx.xxx": "xxx.xxx.xxx.xxx"
 }
 
 # 기본값 지정
-DUT_IP = DUT_MAPPING.get(HOST_IP, "172.16.150.187")
+DUT_IP = DUT_MAPPING.get(HOST_IP, "xxx.xxx.xxx.xxx")
 
 # 콘솔에 IP 정보 출력
 print("=" * 60)
@@ -47,7 +47,7 @@ ES_INDEX_PATTERN = os.getenv("ES_INDEX_PATTERN", "log-*/session")
 # ============================
 # allure Test Server 접속 URL
 # ============================
-ALLURE_IP = os.getenv("ALLURE_IP", "172.16.150.138")
+ALLURE_IP = os.getenv("ALLURE_IP", "xxx.xxx.xxx.xxx")
 
 # ============================
 # 서비스 이름 (메일)
@@ -259,25 +259,12 @@ DLP_NORMAL = [
 
 # 패턴 테스트 값들 (개인정보, 민감정보, 계좌번호 등)
 DLP_PATTERN = [
-    "950621-1554381",
+    "pattern",
 ]
 DLP_PATTERNS = [
-    "950621-1554381",
-    "02-750-0901",
-    "010-8212-4071",
-    "192.168.0.121",
-    "kjkeum@soosan.co.kr",
-    "216502-04-268317",
-    "KR7726840",
-    "D58493043",
-    "경기00-852223-51",
-    "4221-5500-1007-2121",
-    "751214-5265498",
-    "207-81-51341",
-    "110111-1518830",
-    "81233745079",
+    "pattern",
+    "pattern2",
 ]
-
 # 키워드 테스트 값들
 # 키워드 로깅 테스트
 DLP_KEYWORDS = [

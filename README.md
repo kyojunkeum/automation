@@ -1,92 +1,63 @@
-# dlp_new_automation
+# automation
 
+## 1. 프로젝트 개요 (Overview)
 
+이 프로젝트는 DLP 보안솔루션의 로깅 기능을 검증하는 역할을 합니다. 
 
-## Getting started
+## 2. 왜 이 프로젝트가 필요한가? (Problem)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+DLP 가 감시하는 서비스들은 각 개별 업데이트가 발생하고, 그에 따라 URL 패턴, 통신 프로토콜 변경 등의 사유로 
+로깅 기능이 무력화되는 경우가 있습니다. 
+이를 선제적으로 파악하지 못하면 고객사로부터 로깅 불가 이슈를 받게 되고, 이는 고객사 신뢰도의 저하로 이어집니다. 
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## 3. 해결 방법 (Solution)
 
-## Add your files
+각 서비스별 서비스 활동 -> ES 조회를 통해 로깅 기능이 정상적으로 수행되었는지 판단하여 
+서비스의 패턴 및 프로토콜 등이 변경되었는지 선제적으로 파악하여 개발팀에 전달합니다.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## 4. 주요 기능 (Features)
 
-```
-cd existing_repo
-git remote add origin https://gitlab.soosanint.com/kjkeum/dlp_new_automation.git
-git branch -M main
-git push -uf origin main
-```
+1. 각 서비스, 프로토콜별로 기본 본문, 개인정보 포함 내용, 키워드 포함 내용, 파일 첨부 활동을 수행하고
+ElasticSearch 에 정상적으로 로깅되었는지 로그 조회 및 결과값 비교를 통해 해당 서비스의 로깅이 정상적으로 수행되었는지 판단합니다. 
+지원하는 서비스 종류는 메일, 메신저(일부), SNS, 댓글, 업무공유(노션, 두레이 업무 등), 웹하드 등이 있습니다.  
 
-## Integrate with your tools
+2. 공통(common) 시험항목으로 API 테스트, HTTP 부하 테스트, 
+코어 재기동 후 네트워크 통신 연결 테스트, 장비 재부팅 후 네트워크 통신 연결 테스트도 포함되어 있습니다.
 
-- [ ] [Set up project integrations](https://gitlab.soosanint.com/kjkeum/dlp_new_automation/-/settings/integrations)
+3. playwright 와 pytest, allure 를 활용하여 generate_and_upload_report_V2를 실행하면 
+test_ 로 시작하는 테스트 케이스별 코드들이 서비스 활동 -> ES 검증을 수행합니다. 
+한 바퀴가 끝나면 특정 http 서버로 테스트 결과(allure_result) 를 전송하게 됩니다. 
+마지막으로 테스트 결과를 http 서버에 접속하여 확인가능합니다. 
 
-## Collaborate with your team
+4. 검증이 실패한 테스트 케이스는 각각 스크린샷과 에러 로그를 확인해볼 수 있습니다. 
+이를 통해 패턴이나 프로토콜이 변경된 것인지, 테스트 환경 때문에 발생한 것인지 미리 파악이 가능합니다. 
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## 5. 시스템 구조 / 흐름 (Architecture)
 
-## Test and Deploy
+generate--.py 실행 -> 각 test_케이스 실행 -> ES 검증(test_케이스 내부) -> WEB SERVER로 결과 전송 -> WEB 사이트 접속 후 결과 확인
 
-Use the built-in continuous integration in GitLab.
+## 6. 사용 기술 (Tech Stack)
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+ - Language : Python 
+ - Framework : Playwright
+ - Tools : allure-report, pytest...
+ 
+## 7. 실행 방법 (How To Run)
 
-***
+로컬에서 pycharm 등의 IDE 프로그램에서 해당 프로젝트를 열고 generate_and_upload_report_V2를 실행합니다. 
+* 단, 테스트 결과를 수집하여 보여줄 수 있는 http서버가 존재해야 합니다. 
 
-# Editing this README
+## 8. 한계와 개선 방향 (Limitations & Future Work)
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+아직 약 21가지의 서비스만 완전 구현된 상태입니다. 당사 DLP 가 로깅을 지원하는 서비스는 약 120개로 
+자동화 대상 서비스의 확장이 필요합니다. 
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+## 9. 이 프로젝트를 통해 얻은 것
 
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+1. 각 서비스별로 파일첨부 하는 요소가 다 다릅니다. 본문은 거의 비슷하여 구현이 쉽지만, 파일첨부는 요소가 iframe등에 숨겨져있거나, 
+자주 바뀌기도 합니다. 때문에 이 요소들을 다양하게 잡아 구현하는 것이 주요했습니다.
+2. playwright 도 만능이 아니기에 '정확도'를 중시할지 '속도'를 중시할지 목표가 명확해야 그점을 해결하기가 쉽습니다. 
+해당 프로젝트는 변경된 서비스의 프로토콜 등을 선제탐지 하는 것이 목적이기에 속도보다 '정확도'를 중시하였고, 
+브라우저가 로딩되는 시간을 충분히 기다릴 수 있도록 코드를 구성하였습니다. 
+3. 아무래도 캡챠 같은 매크로 방지 프로그램을 극복하기가 쉽지 않습니다. 하여 해당 프로젝트에서는 매크로 방지 프로그램으로 막히는 서비스는
+스킵하고 가능한 서비스들만 선제적으로 구현하고 있습니다. 향후에 이러한 부분들은 방법을 찾아 해결해야 할 개선점입니다.

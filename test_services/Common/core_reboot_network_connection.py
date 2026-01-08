@@ -51,7 +51,7 @@ async def run_test():
         await page.goto("https://xxx.xxx.xxx.xxx:xxxx/login")  # 예: http://192.168.0.1/admin
 
         # ✅ 사용자 입력: 로그인 입력 필드 및 로그인 동작
-        await page.fill("input[name='j_username']", "intsoosan")
+        await page.fill("input[name='j_username']", "id")
         await page.fill("input[name='j_password']", "password")
         # await page.get_by_role("button", name="로그인").click()
 

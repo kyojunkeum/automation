@@ -34,14 +34,14 @@ print("=" * 60)
 # ============================
 # DUT 기반 URL 정의 - DLP 제품 접속 URL
 # ============================
-# DLP_BASE_URL = os.getenv("DLP_BASE_URL", "https://172.16.150.187:8443")
+# DLP_BASE_URL = os.getenv("DLP_BASE_URL", "https://xxx.xxx.xxx.xxx:xxxx")
 DLP_BASE_URL = f"https://{DUT_IP}:8443"
 
 # ============================
 # Elasticsearch 접속 URL 및 인덱스
 # ============================
-# ES_URL = os.getenv("ES_URL", "http://172.16.150.187:9200")
-ES_URL = f"http://{DUT_IP}:9200"
+# ES_URL = os.getenv("ES_URL", "http://xxx.xxx.xxx.xxx:xxxx")
+ES_URL = f"http://{DUT_IP}:xxxx"
 ES_INDEX_PATTERN = os.getenv("ES_INDEX_PATTERN", "log-*/session")
 
 # ============================
@@ -272,8 +272,6 @@ DLP_KEYWORDS = [
     "일지매",
     "일지매",
     "일지매",
-    "수산아이앤티",
-    "수산아이앤티",
 ]
 
 # account.py -> base -> dlp_new_automation
